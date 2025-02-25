@@ -4,3 +4,7 @@
 
 [node name="Node2D rng test" type="Node2D"]
 script = ExtResource("1_shox3")
+
+[node name="label test" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
