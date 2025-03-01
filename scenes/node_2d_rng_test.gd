@@ -1,6 +1,6 @@
 extends Node2D
 
-var rng = load("res://rng.gd").new()
+var rng = load("res://scripts/rng.gd").new()
 
 const seedval: int = 0x1ee71337
 var pos: int = 0x13371ee7
