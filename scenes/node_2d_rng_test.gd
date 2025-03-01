@@ -1,9 +1,5 @@
 extends Node2D
 
-var rng = load("res://scripts/rng.gd").new()
-
-const seedval: int = 0x1ee71337
-var pos: int = 0x13371ee7
 var temp: int = 0
 
 var dynamic_label: Label = Label.new()
@@ -18,16 +14,14 @@ func _ready() -> void:
 
 func _draw():
 	for n in 64:
-		pos += 1
-		temp = rng.rng(pos, seedval)
+		temp = GameState.rng_next_int()
 		draw_line(Vector2(temp & 255, (temp >> 8) & 255), Vector2((temp & 255) + 1, (temp >> 8) & 255), Color.BLACK, 1.0)
 		draw_line(Vector2(((temp >> 16) & 255), (temp >> 24) & 255), Vector2(((temp >> 16) & 255) + 1, (temp >> 24) & 255), Color.RED, 1.0)
-		pos += 1
-		temp = rng.rng(pos, seedval)
+		temp = GameState.rng_next_int()
 		draw_line(Vector2(temp & 255, (temp >> 8) & 255), Vector2((temp & 255) + 1, (temp >> 8) & 255), Color.GREEN, 1.0)
 		draw_line(Vector2(((temp >> 16) & 255), (temp >> 24) & 255), Vector2(((temp >> 16) & 255) + 1, (temp >> 24) & 255), Color.BLUE, 1.0)
 		draw_string(ThemeDB.fallback_font, 
-			Vector2((pos >> 8) % 256 - 8, 64), 
+			Vector2((GameState.pos >> 8) % 256 - 8, 64), 
 			"@", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0xee, 0xd1, 0x21))
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.

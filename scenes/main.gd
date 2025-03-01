@@ -12,6 +12,7 @@ func _ready() -> void:
 
 func _on_StartButton_pressed():
 	# Load and switch to the game scene when the button is pressed
+	GameState.start_game()
 	get_tree().change_scene_to_file(GAME_SCENE_PATH)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
