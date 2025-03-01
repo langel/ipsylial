@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 var temp: int = 0
 
