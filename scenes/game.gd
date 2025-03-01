@@ -12,7 +12,7 @@ func _ready() -> void:
 
 func get_random_floor_tile():
 	var coords = [0,6]
-	var roll = GameState.rng_next_int()%10
+	var roll = GameState.rng_next_int()%30
 	if roll == 9:
 		coords = [1,6]
 	elif roll == 8:

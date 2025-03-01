@@ -13,8 +13,8 @@ var baddies: Array[Baddy] = []
 var items: Array[Array] = []
 
 #rng args for each game / seed
-var pos: int = 0x13371ee7
-var seedval: int = DEFAULT_RNG_POS
+var pos: int = DEFAULT_RNG_POS
+var seedval: int = 0x1ee71337
 var rng = load("res://scripts/rng.gd").new()
 
 # Called when the node enters the scene tree for the first time.

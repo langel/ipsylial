@@ -10,17 +10,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_0ji46")
 
-[node name="Grid" type="Node2D" parent="."]
+[node name="Grid" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Ground" type="TileMapLayer" parent="Grid"]
 tile_set = ExtResource("1_38m8k")
-
-[node name="Objects" type="TileMapLayer" parent="Grid"]
+collision_enabled = false
 
 [node name="EntityLayer" type="Node2D" parent="."]
-
-[node name="Ground" type="TileMapLayer" parent="EntityLayer"]
-
-[node name="Objects" type="TileMapLayer" parent="EntityLayer"]
