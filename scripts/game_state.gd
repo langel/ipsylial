@@ -37,7 +37,7 @@ func rng_next_int() -> int:
 	return rng.rng(pos,seedval)
 
 func new_map() -> Map:
-	return Map.new(15,15)
+	return Map.new(40,40)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
