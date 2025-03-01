@@ -4,13 +4,14 @@ signal player_moved(new_position: Vector2i)
 signal turn_ended
 
 const DEFAULT_RNG_POS = 0x13371ee7
+const TILE_SIZE: int = 32
 
 var hp = 15
 var player_position: Vector2i = Vector2i(0, 0)
 
 var map: Map
 var baddies: Array[Baddy] = []
-var items: Array[Array] = []
+var items: Array[Item] = []
 
 var pos: int = DEFAULT_RNG_POS
 var seedval: int = 0x1ee71337
@@ -22,6 +23,15 @@ func start_game() -> void:
 	player_position = Vector2i(0, 0)
 	hp = 15
 	map = new_map()
+	baddies = new_baddies()
+
+func new_baddies():
+	var baddies: Array[Baddy] = []
+	var num_baddies = 5 + rng_next_int()%10
+	for i in range(0,num_baddies):
+		baddies.append(Baddy.new(Vector2i(rng_next_int()%map.width,rng_next_int()%map.height)))
+		baddies[i].baddy_type = baddies[i].get_random_baddy_type()
+	return baddies
 
 func rng_next_int() -> int:
 	pos += 1

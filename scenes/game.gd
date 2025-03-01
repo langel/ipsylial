@@ -1,7 +1,10 @@
 extends Node
 
 @onready var ground_tile_map = $Grid/Ground
+@onready var entity_layer = $EntityLayer
 @onready var player = $EntityLayer/Player  
+
+const BADDY_SCENE = preload("res://scenes/baddy.tscn")
 
 func _ready() -> void:
 	print("Clearing tilemap on load...")
@@ -10,6 +13,8 @@ func _ready() -> void:
 	_on_player_moved(GameState.player_position)
 	GameState.player_moved.connect(_on_player_moved)
 	GameState.turn_ended.connect(_on_turn_ended)
+
+	spawn_baddies()
 
 func _input(event):
 	if !GameState.turn_active:
@@ -30,7 +35,7 @@ func _input(event):
 		GameState.move_player(move_dir)
 
 func _on_player_moved(new_position: Vector2i):
-	player.position = new_position * 32 + Vector2i(16,16)
+	player.position = new_position * GameState.TILE_SIZE + Vector2i(GameState.TILE_SIZE / 2, GameState.TILE_SIZE / 2)
 
 func _on_turn_ended():
 	run_ai_turn()
@@ -38,6 +43,13 @@ func _on_turn_ended():
 
 func run_ai_turn():
 	pass
+
+func spawn_baddies():
+	for baddy in GameState.baddies:
+		var baddy_instance = BADDY_SCENE.instantiate()
+		baddy_instance.update_baddy(baddy)
+		baddy_instance.position = (baddy.position * GameState.TILE_SIZE) + Vector2(GameState.TILE_SIZE / 2, GameState.TILE_SIZE / 2) + Vector2(GameState.TILE_SIZE/2,GameState.TILE_SIZE/2)
+		entity_layer.add_child(baddy_instance)
 
 func get_random_floor_tile():
 	var coords = [0,6]
@@ -63,6 +75,3 @@ func fill_map_tiles():
 			if (GameState.map.tiles[j][i].type == Tile.TileType.FLOOR):
 				texture_coords = get_random_floor_tile()
 			ground_tile_map.set_cell(Vector2i(j, i), 1, texture_coords, 0)
-
-func _process(delta: float) -> void:
-	pass

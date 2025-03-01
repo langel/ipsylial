@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bf1g5f3nivsrx"]
+
+[ext_resource type="Script" path="res://scenes/baddy_scene.gd" id="1_jwlpn"]
+[ext_resource type="Texture2D" uid="uid://b2rlv1bd6uost" path="res://assets/textures/32rogues/animals.png" id="2_n7l1k"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_monm2"]
+atlas = ExtResource("2_n7l1k")
+region = Rect2(0, 0, 32, 32)
+
+[node name="Baddy" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1248.0
+offset_bottom = -688.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jwlpn")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("AtlasTexture_monm2")
+offset = Vector2(16, 16)
