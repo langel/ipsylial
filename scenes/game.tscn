@@ -41,5 +41,4 @@ collision_enabled = false
 texture = SubResource("AtlasTexture_4fc2h")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-offset = Vector2(640, 360)
 script = ExtResource("3_hgn73")

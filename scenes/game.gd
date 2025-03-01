@@ -7,7 +7,7 @@ func _ready() -> void:
 	print("Clearing tilemap on load...")
 	ground_tile_map.clear()
 	fill_map_tiles()
-
+	_on_player_moved(GameState.player_position)
 	GameState.player_moved.connect(_on_player_moved)
 	GameState.turn_ended.connect(_on_turn_ended)
 
