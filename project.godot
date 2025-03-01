@@ -11,20 +11,21 @@ config_version=5
 [application]
 
 config/name="ipsylial"
-run/main_scene="res://node_2d_rng_test.tscn"
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
+boot_splash/bg_color=Color(0.0546165, 0.16483, 0.116644, 1)
 config/icon="res://icon.svg"
 
 [display]
 
-window/size/viewport_width=255
-window/size/viewport_height=255
+window/size/viewport_width=1280
+window/size/viewport_height=720
 window/stretch/mode="viewport"
 window/stretch/scale_mode="integer"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/rng/plugin.cfg")
+enabled=PackedStringArray()
 
 [rendering]
 
