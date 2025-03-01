@@ -1,44 +1,51 @@
 extends Node
 
+signal player_moved(new_position: Vector2i)
+signal turn_ended
+
 const DEFAULT_RNG_POS = 0x13371ee7
 
-var start_time: float = 0.0
-
 var hp = 15
-var x: int = 0
-var y: int = 0
+var player_position: Vector2i = Vector2i(0, 0)
 
 var map: Map
 var baddies: Array[Baddy] = []
 var items: Array[Array] = []
 
-#rng args for each game / seed
 var pos: int = DEFAULT_RNG_POS
 var seedval: int = 0x1ee71337
 var rng = load("res://scripts/rng.gd").new()
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var turn_active: bool = true
 
 func start_game() -> void:
-	x = 0
-	y = 0
+	player_position = Vector2i(0, 0)
 	hp = 15
 	map = new_map()
-	#reset_rng()
-
-func reset_rng() -> void:
-	seedval = randi()
-	pos = DEFAULT_RNG_POS
 
 func rng_next_int() -> int:
-	pos+=1
-	return rng.rng(pos,seedval)
+	pos += 1
+	return rng.rng(pos, seedval)
 
 func new_map() -> Map:
-	return Map.new(40,40)
+	return Map.new(40, 40)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func move_player(direction: Vector2i):
+	if !turn_active:
+		return  
+
+	var new_pos = player_position + direction
+
+	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
+		return
+	if map.tiles[new_pos.x][new_pos.y].type != Tile.TileType.FLOOR:
+		return
+
+	player_position = new_pos
+	player_moved.emit(new_pos)
+
+	end_turn()
+
+func end_turn():
+	turn_active = false
+	turn_ended.emit()
