@@ -1,7 +1,6 @@
 extends Node
 
-var byte
-
+var byte: int = 1
 
 func lfsr_byte() -> int:
 	var carry = byte & 1
