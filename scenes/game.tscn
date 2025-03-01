@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://bbbnpvmmdiwhf"]
+
+[ext_resource type="Script" path="res://scenes/game.gd" id="1_0ji46"]
+[ext_resource type="TileSet" uid="uid://daqf1ll8mj4xp" path="res://assets/tile_sets/terrain.tres" id="1_38m8k"]
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0ji46")
+
+[node name="Grid" type="Node2D" parent="."]
+
+[node name="Ground" type="TileMapLayer" parent="Grid"]
+tile_set = ExtResource("1_38m8k")
+
+[node name="Objects" type="TileMapLayer" parent="Grid"]
+
+[node name="EntityLayer" type="Node2D" parent="."]
+
+[node name="Ground" type="TileMapLayer" parent="EntityLayer"]
+
+[node name="Objects" type="TileMapLayer" parent="EntityLayer"]

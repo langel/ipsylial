@@ -8,7 +8,7 @@ var hp = 15
 var x: int = 0
 var y: int = 0
 
-var map: Array[Array] = []
+var map: Map
 var baddies: Array[Baddy] = []
 var items: Array[Array] = []
 
@@ -36,8 +36,8 @@ func rng_next_int() -> int:
 	pos+=1
 	return rng.rng(pos,seedval)
 
-func new_map() -> Array[Array]:
-	return []
+func new_map() -> Map:
+	return Map.new(15,15)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
