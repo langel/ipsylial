@@ -31,13 +31,10 @@ func _draw():
 	sine2 += 1
 	sine2 %= 100
 	$"debug".text = str(cos((sine2/100.0)*PI)*50).pad_decimals(3)
-	draw_rect(Rect2(sin(sine_test)*50+150,cos(sine_test)*50+150,2,2), Color.CORAL)
-	draw_rect(Rect2(sin((sine2/100.0)*TAU)*50+550,cos((sine2/100.0)*TAU)*50+150,2,2), Color.CORAL)
 			
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	queue_redraw()
 	pass
 
 func _input(event):
@@ -45,3 +42,7 @@ func _input(event):
 		return  
 	elif Input.is_action_just_pressed("escape"):
 		get_tree().quit()
+	elif Input.is_action_just_pressed("space"):
+		data = dung.gen_empty_map()
+		dung.gen_terrain(data)
+		queue_redraw()
