@@ -7,6 +7,7 @@ extends Node
 const BADDY_SCENE = preload("res://scenes/baddy.tscn")
 
 func _ready() -> void:
+	GameState.start_game()
 	print("Clearing tilemap on load...")
 	ground_tile_map.clear()
 	fill_map_tiles()
@@ -30,6 +31,8 @@ func _input(event):
 		move_dir = Vector2i(0, 1)
 	elif Input.is_action_just_pressed("move_up"):
 		move_dir = Vector2i(0, -1)
+	elif Input.is_action_just_pressed("escape"):
+		get_tree().quit()
 
 	if move_dir != Vector2i.ZERO:
 		GameState.move_player(move_dir)
