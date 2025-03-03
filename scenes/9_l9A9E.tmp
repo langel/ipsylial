@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://baf7tjt8b3cny"]
-
-[ext_resource type="Script" path="res://9_level_dungeon_gen.gd" id="1_k1jxc"]
-
-[node name="9 level dungeon gen" type="Node2D"]
-script = ExtResource("1_k1jxc")
-
-[node name="mesh" type="MeshInstance2D" parent="."]
