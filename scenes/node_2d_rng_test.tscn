@@ -12,5 +12,6 @@ grow_vertical = 2
 script = ExtResource("1_shox3")
 
 [node name="label test" type="Label" parent="."]
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
