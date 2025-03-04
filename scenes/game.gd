@@ -3,6 +3,7 @@ extends Node
 @onready var ground_tile_map = $Grid/Ground
 @onready var entity_layer = $EntityLayer
 @onready var player = $EntityLayer/Player  
+var turn = 0
 
 const BADDY_SCENE = preload("res://scenes/baddy.tscn")
 
@@ -41,17 +42,31 @@ func _on_player_moved(new_position: Vector2i):
 	player.position = new_position * GameState.TILE_SIZE + Vector2i(GameState.TILE_SIZE / 2, GameState.TILE_SIZE / 2)
 
 func _on_turn_ended():
-	run_ai_turn()
+	drawScore()
+	turn += 1
+	await run_ai_turn()
 	GameState.turn_active = true  
+	drawScore()
 
 func run_ai_turn():
+	await get_tree().create_timer(0.1).timeout
+	for baddy in GameState.baddies:
+		baddy.take_turn()
+		baddy.scene.position = (baddy.grid_position * GameState.TILE_SIZE)
+		baddy.scene.update_state()
+		await get_tree().create_timer(0.05).timeout
 	pass
+	await get_tree().create_timer(0.1).timeout
+
+func drawScore():
+	var label = $CanvasLayer/Label
+	label.text = ("Player turn" if GameState.turn_active else "AI Turn") + "\nTurn: " + str(turn)
 
 func spawn_baddies():
 	for baddy in GameState.baddies:
 		var baddy_instance = BADDY_SCENE.instantiate()
 		baddy_instance.update_baddy(baddy)
-		baddy_instance.position = (baddy.position * GameState.TILE_SIZE) + Vector2(GameState.TILE_SIZE / 2, GameState.TILE_SIZE / 2) + Vector2(GameState.TILE_SIZE/2,GameState.TILE_SIZE/2)
+		baddy_instance.position = (baddy.grid_position * GameState.TILE_SIZE)
 		entity_layer.add_child(baddy_instance)
 
 func get_random_floor_tile():

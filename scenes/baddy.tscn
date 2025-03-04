@@ -21,3 +21,10 @@ script = ExtResource("1_jwlpn")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = SubResource("AtlasTexture_monm2")
 offset = Vector2(16, 16)
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = -24.0
+offset_right = 51.0
+offset_bottom = -1.0

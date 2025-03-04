@@ -11,6 +11,8 @@ func _init(x: int, y: int, type: TileType = TileType.FLOOR):
 	self.x = x
 	self.y = y
 	self.type = type
+	if type == TileType.AIR or type == TileType.WALL:
+		traversable = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

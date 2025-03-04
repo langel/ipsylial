@@ -1,8 +1,7 @@
 class_name Item
 extends Node
 
-var x: int = 0
-var y: int = 0
+var grid_position: Vector2 = Vector2(0,0)
 var interactable: bool = false
 var traversable: bool = true
 enum ItemType { STONE, BEER, DUCK_FOOD }
