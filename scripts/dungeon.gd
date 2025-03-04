@@ -14,6 +14,10 @@ var rng = load("res://scripts/rng.gd").new()
 func rng_next_int() -> int:
 	pos += 1
 	return rng.rng(pos, seedval)
+	
+func rngmod(mod) -> int:
+	pos += 1
+	return rng.rng(pos, seedval)%int(mod)
 
 func data_write(data: Array, x: int, y: int, val: int):
 	if (x >= 0 and x < width and y >= 0 and y < height):
@@ -30,8 +34,40 @@ func gen_empty_map() -> Array:
 	return data
 	
 func gen_terrain(data: Array):
-	# level 1
-	level_carve_rect(data[0], Rect2(20, 20, 20, 20))
+	var stairs = []
+	var x = 0 # scratch registers
+	var y = 0 
+	var s = 0
+	# level 1 - outside - walls are trees and flowers
+	push_warning('level 1')
+	for i in 19:  #19
+		x = rngmod(width/2)+width/5
+		y = rngmod(height/2)+height/6
+		level_carve_elipse(data[0], Rect2(x, y, rngmod(width/8)+width/16, rngmod(height/8)+width/16))
+	level_add_rubble(data[0], Rect2(0, 0, width, height), 7878)
+	level_carve_ovoid(data[0], Rect2(width/2-17,height/2-17,34,34))
+	# stair spaces
+	s = 17
+	x = width/5 + rngmod(width/8)
+	y = height/6 + rngmod(height/8)
+	level_carve_rounded(data[0], Rect2(x, y, s, s))
+	level_carve_path(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	level_carve_corridor(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	x = width - width/5 - rngmod(width/8) - s
+	y = height/6 + rngmod(height/8)
+	level_carve_rounded(data[0], Rect2(x, y, s, s))
+	level_carve_path(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	level_carve_corridor(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	x = width/5 + rngmod(width/8)
+	y = height - height/6 - rngmod(height/8) - s
+	level_carve_rounded(data[0], Rect2(x, y, s, s))
+	level_carve_path(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	level_carve_corridor(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	x = width - width/5 - rngmod(width/8) - s
+	y = height - height/6 - rngmod(height/8) - s
+	level_carve_rounded(data[0], Rect2(x, y, s, s))
+	level_carve_path(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
+	level_carve_corridor(data[0], Vector2(x+s/2, y+s/2), Vector2(width/2, height/2))
 	# level 2
 	level_carve_elipse(data[1], Rect2(20,20,100,70))
 	# level 3
@@ -101,66 +137,45 @@ func level_carve_rect(data: Array, rect: Rect2):
 			data_write(data, x+rect.position.x, y+rect.position.y, 1)
 
 func level_carve_path(data: Array, start: Vector2, end: Vector2):
-	var x_start
-	var x_end
-	var y_start
-	var y_end
 	if (start.x < end.x):
-		x_start = start.x
-		x_end = end.x
+		for x in (end.x - start.x):
+			data_write(data, x + start.x, start.y, 1)
 	else:
-		x_start = end.x
-		x_end = start.x
+		for x in (start.x - end.x):
+			data_write(data, x + end.x, start.y, 1)
 	if (start.y < end.y):
-		y_start = start.y
-		y_end = end.y
+		for y in (end.y - start.y):
+			data_write(data, end.x, y + start.y, 1)
 	else:
-		y_start = end.y
-		y_end = start.y
-	for x in (x_end - x_start):
-		data[x + x_start][y_start] = 1
-	for y in (y_end - y_start):
-		data[x_end][y + y_start] = 1
+		for y in (start.y - end.y):
+			data_write(data, end.x, y + end.y, 1)
 		
 func level_carve_corridor(data: Array, start: Vector2, end: Vector2):
-	var x_start
-	var x_end
-	var y_start
-	var y_end
-	if (start.x < end.x):
-		x_start = start.x
-		x_end = end.x
-	else:
-		x_start = end.x
-		x_end = start.x
-	if (start.y < end.y):
-		y_start = start.y
-		y_end = end.y
-	else:
-		y_start = end.y
-		y_end = start.y
-	var x_dist = x_end - x_start
-	var y_dist = y_end - y_start
-	var ratio = float(x_dist) / float(y_dist)
-	push_warning(ratio)
-	if (ratio < 1.0 and ratio != 0):
-		var y_pos = float(y_start)
-		for x in (x_end - x_start):
-			data[x + x_start][int(y_pos)] = 1;
-			data[x + x_start + 1][int(y_pos)] = 1;
-			data[x + x_start - 1][int(y_pos)] = 1;
-			data[x + x_start][int(y_pos) + 1] = 1;
-			data[x + x_start][int(y_pos) - 1] = 1;
-			y_pos += ratio
-	else:
-		var x_pos = float(x_start)
-		for y in (y_end - y_start):
-			data[int(x_pos)][y + y_start] = 1;
-			data[int(x_pos) + 1][y + y_start] = 1;
-			data[int(x_pos) - 1][y + y_start] = 1;
-			data[int(x_pos)][y + y_start + 1] = 1;
-			data[int(x_pos)][y + y_start - 1] = 1;
-			x_pos += ratio
+	var dx = abs(end.x - start.x)
+	var dy = -abs(end.y - start.y)
+	var sx = 1 if start.x < end.x else -1
+	var sy = 1 if start.y < end.y else -1
+	var x = start.x
+	var y = start.y
+	var err = dx - dy
+	while true:
+		data_write(data, x, y, 1)
+		data_write(data, x+1, y, 1)
+		data_write(data, x-1, y, 1)
+		data_write(data, x, y+1, 1)
+		data_write(data, x, y-1, 1)
+		var e2 = err * 2
+		if e2 > dy:
+			if x == end.x:
+				break
+			err += dy
+			x += sx
+		if e2 < dx:
+			if y == end.y:
+				break
+			err += dx
+			y += sy
+	return
 
 func level_add_rubble(data: Array, rect: Rect2, amount: int):
 	for i in amount:
@@ -177,7 +192,7 @@ func level_carve_hallway(data: Array, start: Vector2, vertical: bool, hall_width
 			var room_h = room_min.y + (rng_next_int()%int(room_rng.y))
 			var room = Rect2(start.x - 1 - room_w, start.y + pos, room_w, room_h)
 			level_carve_rect(data, room)
-			data[room.position.x + room_w][room.position.y + rng_next_int()%int(room_h-2)+1] = 1; # door
+			data_write(data, room.position.x + room_w, room.position.y + rng_next_int()%int(room_h-2)+1, 1) # door
 			pos += room_h + 1
 		max_y = pos
 		# do west rooms
@@ -187,7 +202,7 @@ func level_carve_hallway(data: Array, start: Vector2, vertical: bool, hall_width
 			var room_h = room_min.y + (rng_next_int()%int(room_rng.y))
 			var room = Rect2(start.x + hall_width + 1, start.y + pos, room_w, room_h)
 			level_carve_rect(data, room)
-			data[room.position.x - 1][room.position.y + rng_next_int()%int(room_h-2)+1] = 1; # door
+			data_write(data, room.position.x - 1, room.position.y + rng_next_int()%int(room_h-2)+1, 1) # door
 			pos += room_h + 1
 		# tie them together
 		if (max_y < pos):
@@ -202,7 +217,7 @@ func level_carve_hallway(data: Array, start: Vector2, vertical: bool, hall_width
 			var room_h = room_min.y + (rng_next_int()%int(room_rng.y))
 			var room = Rect2(start.x + pos, start.y - room_h - 1, room_w, room_h)
 			level_carve_rect(data, room)
-			data[room.position.x + rng_next_int()%int(room_w-2)+1][room.position.y + room_h] = 1; # door
+			data_write(data, room.position.x + rng_next_int()%int(room_w-2)+1, room.position.y + room_h, 1) # door
 			pos += room_w + 1
 		max_x = pos
 		# do south rooms
@@ -212,7 +227,7 @@ func level_carve_hallway(data: Array, start: Vector2, vertical: bool, hall_width
 			var room_h = room_min.y + (rng_next_int()%int(room_rng.y))
 			var room = Rect2(start.x + pos, start.y + hall_width + 1, room_w, room_h)
 			level_carve_rect(data, room)
-			data[room.position.x + rng_next_int()%int(room_w-2)+1][room.position.y - 1] = 1; # door
+			data_write(data, room.position.x + rng_next_int()%int(room_w-2)+1, room.position.y - 1, 1) # door
 			pos += room_w + 1
 		# tie them together
 		if (max_x < pos):
