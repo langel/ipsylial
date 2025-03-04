@@ -42,3 +42,11 @@ texture = SubResource("AtlasTexture_4fc2h")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("3_hgn73")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+offset_left = 561.0
+offset_right = 640.0
+offset_bottom = 56.0
+text = "TEST"
