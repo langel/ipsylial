@@ -2,7 +2,7 @@ extends Node
 
 signal player_moved(new_position: Vector2i)
 signal turn_ended
-signal player_damaged
+signal player_damaged(damage: int)
 
 const DEFAULT_RNG_POS = 0x13371ee7
 const TILE_SIZE: int = 32
@@ -12,6 +12,7 @@ var disable_fog = false
 var hp = 15
 var player_position: Vector2 = Vector2(0, 0)
 var player_damage = 1
+var player_los = 12
 
 var map: Map
 var baddies: Array[Baddy] = []
@@ -24,33 +25,66 @@ var rng = load("res://scripts/rng.gd").new()
 var turn_active: bool = true
 
 func start_game() -> void:
-	player_position = Vector2i(0, 0)
+	"""Initializes the game and places the player on a traversable tile."""
 	hp = 15
+	player_damage = 1
 	map = new_map()
 	build_pathfinding_grid()
 	baddies = new_baddies()
+	items = new_items()
+
+	# Find a valid player spawn position
+	player_position = get_random_traversable_position()
+	#player_position = Vector2(1,1)
+
 	# Connect death signals for all baddies	
 	for baddy in baddies:
 		if not baddy.died.is_connected(_on_baddy_died):
 			baddy.died.connect(_on_baddy_died.bind(baddy))
+	
+
+func get_random_traversable_position() -> Vector2:
+	"""Finds a random traversable tile for the player to spawn."""
+	while true:
+		var x = rng_next_int() % map.width
+		var y = rng_next_int() % map.height
+		var pos = Vector2(x, y)
+
+		# Ensure the tile is walkable and doesn't contain a baddy
+		if is_tile_valid(pos) and map.tiles[x][y].traversable and not pos_has_baddy(pos):
+			return pos  # Found a valid position
+	return Vector2(0,0)
+
 
 func new_baddies():
 	var baddies: Array[Baddy] = []
 	var baddy_factory = BaddyFactory.new()
-	var num_baddies = 5 + rng_next_int()%10
+	var num_baddies = 105 + rng_next_int()%10
 	for i in range(0,num_baddies):
 		var baddy: Baddy = baddy_factory.new_baddy(baddy_factory.get_random_baddy_type())
 		baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 		baddies.append(baddy)
 	for i in Baddy.BaddyType.values():
-		for j in range(0,5):
+		for j in range(0,25):
 			var baddy: Baddy = baddy_factory.new_baddy(i)
 			baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 			baddies.append(baddy)
 		
 		
 	return baddies
-	
+
+func new_items():
+	var items: Array[Item] = []
+	var num_items = 5+(map.width*map.height)/36
+	for i in range(0,num_items):
+		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+		if player_can_move_here(pos):
+			var item = Item.new()
+			item.grid_position=pos
+			item.type = Item.ItemType.BRAZIER_OFF if rng_next_int()%4 < 3 else Item.ItemType.APPLE
+			items.append(item)
+	return items
+
 func _on_baddy_died(baddy: Baddy):
 	""" Removes a dead baddy from the baddies list. """
 	if baddy in baddies:
@@ -85,7 +119,7 @@ func move_player(direction: Vector2):
 func pos_has_baddy(position: Vector2):
 	for baddy in baddies:
 		if baddy.grid_position == position:
-			return true			
+			return true
 	return false
 
 func end_turn():
@@ -93,7 +127,7 @@ func end_turn():
 	turn_ended.emit()
 
 func attack_player(baddy: Baddy):
-	emit_signal("player_damaged")
+	emit_signal("player_damaged",baddy.damage)
 	hp -= baddy.damage
 	if hp <= 0:
 		die()
@@ -101,6 +135,10 @@ func attack_player(baddy: Baddy):
 
 func die():
 	pass
+
+func is_tile_valid(pos: Vector2) -> bool:
+	""" Check if a tile position is within map bounds """
+	return pos.x >= 0 and pos.y >= 0 and pos.x < GameState.map.width and pos.y < GameState.map.height
 
 func get_ai_path(start: Vector2, end: Vector2) -> Array:
 	var start_id = get_astar_id(start)
@@ -121,6 +159,9 @@ func baddy_can_move_here(baddy_pos):
 	for baddy in baddies:
 		if baddy.grid_position == baddy_pos and baddy.is_alive():
 			return false
+	for item in items:
+		if item.grid_position == baddy_pos and not item.traversable:
+			return false
 	if player_position == baddy_pos:
 		return false
 	return true
@@ -130,6 +171,9 @@ func player_can_move_here(baddy_pos):
 		return false
 	for baddy in baddies:
 		if baddy.grid_position == baddy_pos and baddy.is_alive():
+			return false
+	for item in items:
+		if item.grid_position == baddy_pos and not item.traversable:
 			return false
 	if player_position == baddy_pos:
 		return false

@@ -4,7 +4,10 @@ extends Node
 var grid_position: Vector2 = Vector2(0,0)
 var interactable: bool = false
 var traversable: bool = true
-enum ItemType { STONE, BEER, DUCK_FOOD }
+var for_baddies: bool = false
+var scene = null
+
+enum ItemType { STONE, BEER, DUCK_FOOD, APPLE, BRAZIER_OFF, BRAZIER_ON }
 var type: ItemType = ItemType.STONE  # Default type
 
 # Called when the node enters the scene tree for the first time.

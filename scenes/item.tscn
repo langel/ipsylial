@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsmdq1uai6bux"]
+
+[ext_resource type="SpriteFrames" uid="uid://dqd0miudbxyjv" path="res://assets/tile_sets/animated_items.tres" id="1_q6b0f"]
+
+[node name="Item" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("1_q6b0f")
+animation = &"brazier_off"

@@ -46,7 +46,7 @@ func get_texture_for_type() -> AtlasTexture:
 	
 func any_items():
 	for item in GameState.items:
-		if grid_position.distance_to(item.grid_position) <= aggression_area:
+		if item.for_baddies and grid_position.distance_to(item.grid_position) <= aggression_area:
 			return true
 	return false
 	

@@ -7,7 +7,8 @@ extends Node
 
 var turn = 0
 const BADDY_SCENE = preload("res://scenes/baddy.tscn")
-const LOS_RANGE = 12  # Max line of sight range
+const ITEM_SCENE = preload("res://scenes/item.tscn")
+
 
 func _ready() -> void:
 	GameState.start_game()
@@ -19,10 +20,19 @@ func _ready() -> void:
 	GameState.turn_ended.connect(_on_turn_ended)
 
 	spawn_baddies()
+	spawn_items()
 	initialize_fog_layer()
 
 	# Bind update_zoom event from Camera2D
 	$Camera2D.connect("update_zoom", Callable(self, "_on_update_zoom"))
+	GameState.connect("player_damaged", Callable(self, "_on_player_damaged"))
+	
+	$Camera2D._on_player_moved(GameState.player_position)
+	
+	update_los()
+
+func _on_player_damaged(damage: int):
+	spawn_floating_text("-"+str(damage),Color.CRIMSON,player.position)
 
 func _on_update_zoom():
 	"""Recalculate fog layer visibility when zoom level changes."""
@@ -55,13 +65,81 @@ func _on_player_moved(new_position: Vector2i):
 
 func move_player(move_dir: Vector2):
 	var moved = GameState.move_player(move_dir)
-	var destination = GameState.player_position + move_dir
+	var destination = GameState.player_position
+	
 	if not moved:
+		destination += move_dir
 		if GameState.pos_has_baddy(destination):
 			attack_baddy(destination)
 		else:
 			return
+	# Check if the player stepped on an item
+	var found_item = get_item_at_position(destination)
+	if found_item:
+		handle_item_trigger(found_item)
+
 	GameState.end_turn()
+
+func get_item_at_position(position: Vector2) -> Item:
+	"""Returns the item at the given position, or null if none exists."""
+	for item in GameState.items:
+		if item.grid_position == position:
+			return item
+	return null
+
+func handle_item_trigger(item: Item):
+	"""Handles player interaction with an item."""
+
+	if item.type == Item.ItemType.BRAZIER_OFF:
+		# Change item type to BRAZIER_ON
+		item.type = Item.ItemType.BRAZIER_ON
+		set_item_animation(item.scene, item.type)  # Update animation
+	
+	elif item.type == Item.ItemType.APPLE:
+		# Heal player and remove the item
+		var heal_amount = GameState.rng_next_int() % 6 + 3  # Random number between 3-8
+		GameState.hp += heal_amount
+
+		# Remove the apple from the game
+		remove_item_from_game(item)
+		spawn_floating_text("+"+str(heal_amount),Color.DARK_GREEN,item.scene.position)
+
+func spawn_floating_text(text: String, color: Color, position: Vector2):
+	"""Spawns floating text above the given position, animates it upwards, and fades it out."""
+	var label = Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_font_size_override("font_size", 16)  # Make text larger
+	label.set_anchors_preset(Control.PRESET_CENTER_TOP)  # Ensure correct positioning
+	label.z_index = 100  # Ensure it's above everything else
+
+	# Convert world position to screen position if needed
+	label.position = position - Vector2(0, 16)  # Offset upwards
+	entity_layer.add_child(label)  # Add to entity layer
+
+	# Debug print
+	print("Floating text spawned at:", label.position, "Text:", text)
+
+	# Animate text movement and fade-out
+	var tween = create_tween()
+	tween.tween_property(label, "position", label.position + Vector2(0, -18), 1.2).set_trans(Tween.TRANS_LINEAR)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.2).set_trans(Tween.TRANS_LINEAR)
+
+	# Delete label after animation
+	await tween.finished
+	label.queue_free()
+
+
+
+func remove_item_from_game(item: Item):
+	"""Removes an item from the game both in GameState and in the scene."""
+	if item in GameState.items:
+		GameState.items.erase(item)  # Remove from game logic
+	
+	# Remove item from the scene
+	if item.scene:
+		item.scene.queue_free()
+
 
 func attack_baddy(destination):
 	var found_baddy: Baddy = null
@@ -92,8 +170,6 @@ func animate_attack(target_pos: Vector2) -> void:
 
 	# Wait for animation to complete
 	await tween.finished
-
-
 
 func _on_turn_ended():
 	drawScore()
@@ -127,6 +203,26 @@ func spawn_baddies():
 		baddy_instance.update_baddy(baddy)
 		baddy_instance.position = (baddy.grid_position * GameState.TILE_SIZE)
 		entity_layer.add_child(baddy_instance)
+
+func spawn_items():
+	"""Instantiate item scenes and place them in the world."""
+	for item in GameState.items:
+		var item_instance = ITEM_SCENE.instantiate()
+		item_instance.position = item.grid_position * GameState.TILE_SIZE
+		set_item_animation(item_instance, item.type)  # Assign animation
+		entity_layer.add_child(item_instance)
+		item.scene = item_instance
+
+func set_item_animation(item_instance: Node2D, item_type: int):
+	"""Assigns the correct animation to an item based on its type."""
+	var sprite = item_instance.get_node("AnimatedSprite2D")
+	var animation_name = item_type_to_string(item_type)  # Convert enum to string
+	if sprite.sprite_frames.has_animation(animation_name):
+		sprite.play(animation_name)  # Play the correct animation
+
+func item_type_to_string(item_type: int) -> String:
+	"""Converts an ItemType enum to a lowercase string."""
+	return Item.ItemType.keys()[item_type].to_lower()
 
 func get_random_floor_tile():
 	var coords = [0,6]
@@ -191,12 +287,12 @@ func update_los():
 
 	# Get properly scaled camera bounds
 	var camera_rect = get_camera_bounds().grow(10*GameState.TILE_SIZE)
-	print("Camera rect is " + str(camera_rect))
+
 	# Get visible tiles within LOS range
 	var visible_tiles = get_tiles_in_los()
-	var los_area = Rect2(GameState.player_position - Vector2(LOS_RANGE, LOS_RANGE), Vector2(LOS_RANGE * 2, LOS_RANGE * 2))
+	var los_area = Rect2(GameState.player_position - Vector2(GameState.player_los, GameState.player_los), Vector2(GameState.player_los * 2, GameState.player_los * 2))
 
-	# Update fog tiles (considering zoom)
+	# Update fog tiles (considering zoom)F
 	for fog_rect in fog_layer.get_children():
 		var tile_pos = fog_rect.position / GameState.TILE_SIZE
 
@@ -238,28 +334,50 @@ func get_camera_bounds() -> Rect2:
 
 
 func get_tiles_in_los() -> Array:
-	"""Computes field of view (FOV) using a circular area and checks for obstructions."""
+	"""Computes field of view (FOV) using a circular area and includes lit braziers."""
 	var los_tiles = []
 	var origin = GameState.player_position
 
-	# Iterate over all tiles within a circular area
-	for x in range(-LOS_RANGE, LOS_RANGE + 1):
-		for y in range(-LOS_RANGE, LOS_RANGE + 1):
+	# Compute player's LOS
+	for x in range(-GameState.player_los, GameState.player_los + 1):
+		for y in range(-GameState.player_los, GameState.player_los + 1):
 			var target_pos = origin + Vector2(x, y)
 
 			# Ensure we stay within the valid map area
-			if not is_tile_valid(target_pos):
+			if not GameState.is_tile_valid(target_pos):
 				continue
 
 			# Ensure the tile is within a circular range
-			if target_pos.distance_to(origin) > LOS_RANGE:
+			if target_pos.distance_to(origin) > GameState.player_los:
 				continue
 
 			# Check if the direct path from origin to target_pos is blocked
 			if not is_path_blocked(origin, target_pos):
 				los_tiles.append(target_pos)
 
+	# Braziers provide light through walls
+	var brazier_los = GameState.player_los / 2
+
+	# Iterate over all items to check for lit braziers
+	for item in GameState.items:
+		if item.type == Item.ItemType.BRAZIER_ON:
+			for x in range(-brazier_los, brazier_los + 1):
+				for y in range(-brazier_los, brazier_los + 1):
+					var target_pos = item.grid_position + Vector2(x, y)
+
+					# Ensure we stay within the valid map area
+					if not GameState.is_tile_valid(target_pos):
+						continue
+
+					# Ensure the tile is within the brazier's light radius
+					if target_pos.distance_to(item.grid_position) > brazier_los:
+						continue
+
+					# No path blocking check—light passes through walls
+					los_tiles.append(target_pos)
+
 	return los_tiles
+
 
 
 func is_path_blocked(start: Vector2, end: Vector2) -> bool:
@@ -274,7 +392,7 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 	var current_pos = start
 
 	# Iterate over the line, checking each step
-	for i in range(steps):
+	for i in range(1,steps):
 		current_pos += Vector2(step_x, step_y)
 
 		# Round to the nearest tile position
@@ -287,9 +405,7 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 	return false  # Path is clear
 
 
-func is_tile_valid(pos: Vector2) -> bool:
-	""" Check if a tile position is within map bounds """
-	return pos.x >= 0 and pos.y >= 0 and pos.x < GameState.map.width and pos.y < GameState.map.height
+
 
 func is_tile_wall(pos: Vector2) -> bool:
 	""" Check if a given tile is a wall """
