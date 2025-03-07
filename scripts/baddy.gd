@@ -1,20 +1,27 @@
 class_name Baddy
 extends Control
 
-enum BaddyType { BLORX, FURD, DRAKE }
+enum BaddyType { ROGUE, KNIGHT, MAGE, BARB, FARMER }
 enum BaddyBehavior {CHILL, CONFIDENT, SEEKING, STARTLED}
 
-var baddy_type: BaddyType = BaddyType.BLORX
+var baddy_type: BaddyType = BaddyType.FARMER
 var grid_position: Vector2 = Vector2(0,0)
 var texture = null
-var behavior = BaddyBehavior.CHILL
 var scene = null
+
+var behavior = BaddyBehavior.CHILL
 var aggression_area = 6
-const SPRITE_SHEET = preload("res://assets/textures/32rogues/animals.png") 
-const FRAME_SIZE = Vector2(GameState.TILE_SIZE, GameState.TILE_SIZE)
 var behavior_change_freq = 2
 var behavior_turns = 0
-func _init(pos: Vector2i, baddy_type: BaddyType = BaddyType.BLORX):
+var num_variations = 1
+var variation = 0
+
+var variation_coords: Array[Vector2] = [Vector2(0,0)]
+
+const SPRITE_SHEET = preload("res://assets/textures/32rogues/rogues.png")
+const FRAME_SIZE = Vector2(GameState.TILE_SIZE, GameState.TILE_SIZE)
+
+func _init(pos: Vector2i, baddy_type: BaddyType = BaddyType.FARMER):
 	grid_position = pos
 	position= pos
 	self.baddy_type = baddy_type
@@ -26,7 +33,7 @@ func _ready() -> void:
 func get_texture_for_type(baddy_type: BaddyType) -> AtlasTexture:
 	var texture = AtlasTexture.new()
 	texture.atlas = SPRITE_SHEET
-	texture.region = get_region_for_type(baddy_type)
+	texture.region = get_region_for_type()
 	return texture
 	
 func any_items():
@@ -98,16 +105,6 @@ func dir_to_player():
 		return path[1]-grid_position
 	return Vector2(0,0)
 
-func get_region_for_type(baddy_type: BaddyType) -> Rect2:
-	match baddy_type:
-		BaddyType.BLORX:
-			return Rect2(0, 0, FRAME_SIZE.x, FRAME_SIZE.y)
-		BaddyType.FURD:
-			return Rect2(32, 0, FRAME_SIZE.x, FRAME_SIZE.y)  # Next frame in the sheet
-		BaddyType.DRAKE:
-			return Rect2(64, 0, FRAME_SIZE.x, FRAME_SIZE.y)  # Adjust based on your sprite sheet layout
-	return Rect2(32, 0, FRAME_SIZE.x, FRAME_SIZE.y)
-
-func get_random_baddy_type() -> BaddyType:
-	var enum_values = BaddyType.values()  # Get an array of all enum values
-	return enum_values[GameState.rng_next_int() % enum_values.size()]
+func get_region_for_type() -> Rect2:
+	var coords = variation_coords[variation%variation_coords.size()]
+	return Rect2(FRAME_SIZE.x*coords.x, FRAME_SIZE.y*coords.y, FRAME_SIZE.x, FRAME_SIZE.y)

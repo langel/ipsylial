@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://bbbnpvmmdiwhf"]
+[gd_scene load_steps=8 format=3 uid="uid://bbbnpvmmdiwhf"]
 
 [ext_resource type="Script" path="res://scenes/game.gd" id="1_0ji46"]
 [ext_resource type="TileSet" uid="uid://daqf1ll8mj4xp" path="res://assets/tile_sets/terrain.tres" id="1_38m8k"]
 [ext_resource type="Texture2D" uid="uid://43wbdu46au5u" path="res://assets/textures/32rogues/monsters.png" id="3_cljvi"]
 [ext_resource type="Script" path="res://scripts/game_camera.gd" id="3_hgn73"]
+[ext_resource type="PackedScene" uid="uid://blr3ak5c1ahh3" path="res://scenes/packed_scenes/game_status.tscn" id="5_cv4yc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kw4yt"]
 atlas = ExtResource("3_cljvi")
@@ -45,8 +46,13 @@ script = ExtResource("3_hgn73")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="Label" type="Label" parent="CanvasLayer"]
-offset_left = 561.0
-offset_right = 640.0
-offset_bottom = 56.0
-text = "TEST"
+[node name="GameStatus" parent="CanvasLayer" instance=ExtResource("5_cv4yc")]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -128.0
+offset_right = 128.0
+offset_bottom = 128.0
+grow_vertical = 1
+scale = Vector2(0.75, 0.75)

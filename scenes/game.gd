@@ -49,18 +49,21 @@ func _on_turn_ended():
 	drawScore()
 
 func run_ai_turn():
-	await get_tree().create_timer(0.1).timeout
 	for baddy in GameState.baddies:
 		baddy.take_turn()
 		baddy.scene.position = (baddy.grid_position * GameState.TILE_SIZE)
 		baddy.scene.update_state()
-		await get_tree().create_timer(0.05).timeout
 	pass
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.01).timeout
 
 func drawScore():
 	var label = $CanvasLayer/Label
-	label.text = ("Player turn" if GameState.turn_active else "AI Turn") + "\nTurn: " + str(turn)
+	var game_status_scene = $CanvasLayer/GameStatus
+
+	game_status_scene.display_hp = GameState.hp
+	game_status_scene.display_turn = turn
+	game_status_scene.display_floor = 1
+	game_status_scene.update_labels()
 
 func spawn_baddies():
 	for baddy in GameState.baddies:

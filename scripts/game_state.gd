@@ -28,10 +28,12 @@ func start_game() -> void:
 
 func new_baddies():
 	var baddies: Array[Baddy] = []
+	var baddy_factory = BaddyFactory.new()
 	var num_baddies = 5 + rng_next_int()%10
 	for i in range(0,num_baddies):
-		baddies.append(Baddy.new(Vector2(rng_next_int()%map.width,rng_next_int()%map.height)))
-		baddies[i].baddy_type = baddies[i].get_random_baddy_type()
+		var baddy: Baddy = baddy_factory.new_baddy(baddy_factory.get_random_baddy_type())
+		baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+		baddies.append(baddy)
 	return baddies
 
 func rng_next_int() -> int:
@@ -50,6 +52,8 @@ func move_player(direction: Vector2):
 	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
 		return
 	if map.tiles[new_pos.x][new_pos.y].type != Tile.TileType.FLOOR:
+		return
+	if !player_can_move_here(new_pos):
 		return
 
 	player_position = new_pos
@@ -73,7 +77,7 @@ func get_ai_path(start: Vector2, end: Vector2) -> Array:
 
 # pathfinding
 func baddy_can_move_here(baddy_pos):
-	if baddy_pos.x >= map.width or baddy_pos.y >= map.height:
+	if baddy_pos.x >= map.width or baddy_pos.y >= map.height or baddy_pos.x < 0 or baddy_pos.y < 0:
 		return false
 	if not map.tiles[baddy_pos.x][baddy_pos.y].traversable:
 		return false

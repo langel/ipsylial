@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3 uid="uid://blr3ak5c1ahh3"]
+
+[ext_resource type="Script" path="res://scripts/game_status_scene.gd" id="1_buhps"]
+[ext_resource type="FontFile" uid="uid://be085hfgmhomb" path="res://assets/fonts/OpenSans-Regular.ttf" id="2_uve48"]
+
+[node name="GameStatus" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_buhps")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.215686)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HpLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_uve48")
+theme_override_font_sizes/font_size = 30
+text = "TEST"
+horizontal_alignment = 1
+
+[node name="TurnLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_uve48")
+theme_override_font_sizes/font_size = 30
+text = "TEST"
+horizontal_alignment = 1
+
+[node name="FloorLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_uve48")
+theme_override_font_sizes/font_size = 30
+text = "TEST"
+horizontal_alignment = 1
