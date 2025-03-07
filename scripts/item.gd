@@ -7,7 +7,7 @@ var traversable: bool = true
 var for_baddies: bool = false
 var scene = null
 
-enum ItemType { STONE, BEER, DUCK_FOOD, APPLE, BRAZIER_OFF, BRAZIER_ON }
+enum ItemType { STONE, BEER, DUCK_FOOD, APPLE, BRAZIER_OFF, BRAZIER_ON, POTION_BLUE, SWORD }
 var type: ItemType = ItemType.STONE  # Default type
 
 # Called when the node enters the scene tree for the first time.

@@ -102,7 +102,23 @@ func handle_item_trigger(item: Item):
 
 		# Remove the apple from the game
 		remove_item_from_game(item)
-		spawn_floating_text("+"+str(heal_amount),Color.DARK_GREEN,item.scene.position)
+		spawn_floating_text("+" + str(heal_amount), Color.DARK_GREEN, item.scene.position)
+
+	elif item.type == Item.ItemType.POTION_BLUE:
+		# Increase player LOS range
+		GameState.player_los += 1
+
+		# Remove potion from game
+		remove_item_from_game(item)
+		spawn_floating_text("+1 LOS", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
+
+	elif item.type == Item.ItemType.SWORD:
+		# Increase player damage
+		GameState.player_damage += 1
+
+		# Remove sword from game
+		remove_item_from_game(item)
+		spawn_floating_text("+1 DMG", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
 
 func spawn_floating_text(text: String, color: Color, position: Vector2):
 	"""Spawns floating text above the given position, animates it upwards, and fades it out."""

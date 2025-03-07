@@ -76,12 +76,24 @@ func new_baddies():
 func new_items():
 	var items: Array[Item] = []
 	var num_items = 5+(map.width*map.height)/36
+	var item_distribution = {Item.ItemType.BRAZIER_OFF: 50, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5}
+	var distribution_sum = 0
+	for item_type in item_distribution.keys():
+		distribution_sum += item_distribution[item_type]
 	for i in range(0,num_items):
 		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 		if player_can_move_here(pos):
 			var item = Item.new()
 			item.grid_position=pos
+			
 			item.type = Item.ItemType.BRAZIER_OFF if rng_next_int()%4 < 3 else Item.ItemType.APPLE
+			var item_roll = GameState.rng_next_int()%distribution_sum
+			var roll_sum = 0
+			for item_type in item_distribution.keys():
+				roll_sum += item_distribution[item_type]
+				if item_roll < roll_sum:
+					item.type = item_type
+					break
 			items.append(item)
 	return items
 
