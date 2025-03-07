@@ -2,12 +2,16 @@ extends Node
 
 signal player_moved(new_position: Vector2i)
 signal turn_ended
+signal player_damaged
 
 const DEFAULT_RNG_POS = 0x13371ee7
 const TILE_SIZE: int = 32
 
+var disable_fog = false
+
 var hp = 15
 var player_position: Vector2 = Vector2(0, 0)
+var player_damage = 1
 
 var map: Map
 var baddies: Array[Baddy] = []
@@ -25,6 +29,10 @@ func start_game() -> void:
 	map = new_map()
 	build_pathfinding_grid()
 	baddies = new_baddies()
+	# Connect death signals for all baddies	
+	for baddy in baddies:
+		if not baddy.died.is_connected(_on_baddy_died):
+			baddy.died.connect(_on_baddy_died.bind(baddy))
 
 func new_baddies():
 	var baddies: Array[Baddy] = []
@@ -34,36 +42,65 @@ func new_baddies():
 		var baddy: Baddy = baddy_factory.new_baddy(baddy_factory.get_random_baddy_type())
 		baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 		baddies.append(baddy)
+	for i in Baddy.BaddyType.values():
+		for j in range(0,5):
+			var baddy: Baddy = baddy_factory.new_baddy(i)
+			baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+			baddies.append(baddy)
+		
+		
 	return baddies
+	
+func _on_baddy_died(baddy: Baddy):
+	""" Removes a dead baddy from the baddies list. """
+	if baddy in baddies:
+		baddies.erase(baddy)
+
 
 func rng_next_int() -> int:
 	pos += 1
 	return rng.rng(pos, seedval)
 
 func new_map() -> Map:
-	return Map.new(40, 40)
+	return Map.new(128, 256)
 
 func move_player(direction: Vector2):
 	if !turn_active:
-		return  
+		return false
 
 	var new_pos = player_position + direction
 
 	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
-		return
+		return false
 	if map.tiles[new_pos.x][new_pos.y].type != Tile.TileType.FLOOR:
-		return
+		return false
 	if !player_can_move_here(new_pos):
-		return
+		return false
 
 	player_position = new_pos
 	player_moved.emit(new_pos)
+	return true
 
-	end_turn()
+
+func pos_has_baddy(position: Vector2):
+	for baddy in baddies:
+		if baddy.grid_position == position:
+			return true			
+	return false
 
 func end_turn():
 	turn_active = false
 	turn_ended.emit()
+
+func attack_player(baddy: Baddy):
+	emit_signal("player_damaged")
+	hp -= baddy.damage
+	if hp <= 0:
+		die()
+	pass
+
+func die():
+	pass
 
 func get_ai_path(start: Vector2, end: Vector2) -> Array:
 	var start_id = get_astar_id(start)
@@ -82,7 +119,7 @@ func baddy_can_move_here(baddy_pos):
 	if not map.tiles[baddy_pos.x][baddy_pos.y].traversable:
 		return false
 	for baddy in baddies:
-		if baddy.grid_position == baddy_pos:
+		if baddy.grid_position == baddy_pos and baddy.is_alive():
 			return false
 	if player_position == baddy_pos:
 		return false
@@ -92,7 +129,7 @@ func player_can_move_here(baddy_pos):
 	if not map.tiles[baddy_pos.x][baddy_pos.y].traversable:
 		return false
 	for baddy in baddies:
-		if baddy.grid_position == baddy_pos:
+		if baddy.grid_position == baddy_pos and baddy.is_alive():
 			return false
 	if player_position == baddy_pos:
 		return false

@@ -4,9 +4,11 @@ extends Node
 var height: int = 0
 var width: int = 0
 var tiles: Array = []
+var level = 0
+var num_upstairs = 2
+var num_downstairs = 2
 
-
-func _init(height: int = 10, width: int = 10):
+func _init(height: int = 10, width: int = 10, num_upstairs = 2, num_downstairs=2, level=0):
 	self.height = height
 	self.width = width
 	self.build_map()
@@ -17,7 +19,7 @@ func build_map():
 		tiles.append([])
 	for i in range(0,height):
 		for j in range(0, width):
-			var type =  Tile.TileType.AIR if (GameState.rng_next_int()%5 == 0) else Tile.TileType.FLOOR
+			var type =  Tile.TileType.AIR if (GameState.rng_next_int()%12 == 0) else Tile.TileType.FLOOR
 			tiles[j].append(Tile.new(j,i,type))
 		
 

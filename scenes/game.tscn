@@ -36,6 +36,8 @@ grow_vertical = 2
 tile_set = ExtResource("1_38m8k")
 collision_enabled = false
 
+[node name="FogOfWar" type="Node2D" parent="Grid"]
+
 [node name="EntityLayer" type="Node2D" parent="."]
 
 [node name="Player" type="Sprite2D" parent="EntityLayer"]
