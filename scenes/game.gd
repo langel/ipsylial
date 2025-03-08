@@ -199,11 +199,35 @@ func run_ai_turn():
 	for baddy in GameState.baddies:
 		if not baddy.is_alive():
 			continue
+
+		# Move and update state
 		baddy.take_turn()
 		baddy.scene.position = (baddy.grid_position * GameState.TILE_SIZE)
 		baddy.scene.update_state()
-	pass
+
+		# Check if the baddy is on an item that allows interaction
+		var item = get_item_at_position(baddy.grid_position)
+		if item and item.for_baddies:
+			handle_baddy_item_interaction(baddy, item)
+
 	await get_tree().create_timer(0.01).timeout
+	
+func handle_baddy_item_interaction(baddy: Baddy, item: Item):
+	"""Handles interactions between baddies and items flagged as 'for_baddies'."""
+	print("Baddy interacted with:", item.type)
+
+	match item.type:
+		Item.ItemType.SWORD:
+			# Baddy gets stronger!
+			baddy.damage += 1
+			spawn_floating_text("+1 DMG", Color(0.5, 0, 1), baddy.scene.position)
+
+			# Remove sword from the game
+			remove_item_from_game(item)
+		_:
+			print("Unhandled item for baddy:", item.type)
+
+
 
 func drawScore():
 	var game_status_scene = $CanvasLayer/GameStatus

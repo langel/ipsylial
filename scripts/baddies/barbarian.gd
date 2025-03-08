@@ -14,6 +14,14 @@ func _init(pos: Vector2, baddy_type: Baddy.BaddyType = Baddy.BaddyType.BARB):
 func _ready() -> void:
 	pass # Replace with function body.
 
+func more_behavior(is_player, is_item):
+	if behavior == BaddyBehavior.STARTLED:
+		if is_player:
+			set_behavior(BaddyBehavior.CONFIDENT)
+	if behavior == BaddyBehavior.SEEKING:
+		if is_player:
+			set_behavior(BaddyBehavior.CONFIDENT)
+		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

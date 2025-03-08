@@ -94,6 +94,16 @@ func new_items():
 				if item_roll < roll_sum:
 					item.type = item_type
 					break
+			match item.type:
+				Item.ItemType.BRAZIER_OFF:
+					pass
+				Item.ItemType.APPLE:
+					pass
+				Item.ItemType.POTION_BLUE:
+					pass
+				Item.ItemType.SWORD:
+					item.for_baddies = true
+					pass
 			items.append(item)
 	return items
 

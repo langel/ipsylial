@@ -17,6 +17,28 @@ func _init(pos: Vector2, baddy_type: Baddy.BaddyType = Baddy.BaddyType.FARMER):
 	self.behavior_change_freq = 3
 	self.damage = 1
 
+func more_behavior(is_player, is_item):
+	if behavior == BaddyBehavior.CHILL:
+		if is_player:
+			set_behavior(BaddyBehavior.STARTLED)
+	elif behavior == BaddyBehavior.STARTLED:
+		if is_item:
+			set_behavior(BaddyBehavior.SEEKING)
+		elif is_player:
+			set_behavior(BaddyBehavior.CONFIDENT)
+	elif behavior == BaddyBehavior.SEEKING:
+		if not is_item:
+			if is_player:
+				set_behavior(BaddyBehavior.STARTLED)
+			else:
+				set_behavior(BaddyBehavior.CHILL)
+	elif behavior == BaddyBehavior.CONFIDENT:
+		if not is_player:
+			if not is_item:
+				set_behavior(BaddyBehavior.CHILL)
+			else:
+				set_behavior(BaddyBehavior.SEEKING)
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass

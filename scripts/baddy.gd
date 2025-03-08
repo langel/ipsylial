@@ -94,6 +94,10 @@ func change_behavior():
 				set_behavior(BaddyBehavior.CHILL)
 			else:
 				set_behavior(BaddyBehavior.SEEKING)
+	more_behavior(is_player, is_item)
+
+func more_behavior(any_player, any_items):
+	pass
 
 func take_turn():
 	var dir: Vector2 = Vector2(0,0)
@@ -107,6 +111,8 @@ func take_turn():
 		dir = get_random_direction()
 	elif behavior == BaddyBehavior.CONFIDENT:
 		dir = dir_to_player()
+	elif behavior == BaddyBehavior.SEEKING:
+		dir = dir_to_item()
 	
 	var new_position = self.grid_position + dir
 	if GameState.baddy_can_move_here(new_position):
@@ -132,6 +138,31 @@ func dir_to_player():
 	if path.size() > 1:
 		return path[1]-grid_position
 	return Vector2(0,0)
+
+func dir_to_item() -> Vector2:
+	"""Returns the direction toward the nearest reachable item."""
+	var item = find_nearest_reachable_item()
+	if item:
+		var path = GameState.get_ai_path(grid_position, item.grid_position)
+		if path.size() > 1:
+			return path[1] - grid_position  # Move toward the next step in the path
+	return Vector2(0, 0)  # No valid path, don't move
+
+
+func find_nearest_reachable_item() -> Item:
+	"""Finds the closest item that the baddy can reach."""
+	var nearest_item = null
+	var shortest_distance = INF  # Start with infinite distance
+
+	for item in GameState.items:
+		if item.for_baddies:
+			var path = GameState.get_ai_path(grid_position, item.grid_position)
+			if path.size() > 1 and path.size() < shortest_distance:
+				nearest_item = item
+				shortest_distance = path.size()
+
+	return nearest_item
+
 
 func get_region_for_type() -> Rect2:
 	var coords = variation_coords[self.variation%self.num_variations]
