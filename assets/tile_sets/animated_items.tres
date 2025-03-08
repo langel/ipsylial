@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=17 format=3 uid="uid://dqd0miudbxyjv"]
+[gd_resource type="SpriteFrames" load_steps=20 format=3 uid="uid://dqd0miudbxyjv"]
 
 [ext_resource type="Texture2D" uid="uid://vebrk6gfpwdo" path="res://assets/textures/32rogues/items.png" id="1_upmj6"]
 [ext_resource type="Texture2D" uid="uid://py41qybna61m" path="res://assets/textures/32rogues/animated-tiles.png" id="2_8ut07"]
@@ -51,6 +51,18 @@ region = Rect2(128, 800, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwj2j"]
 atlas = ExtResource("1_upmj6")
 region = Rect2(96, 800, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tskqd"]
+atlas = ExtResource("1_upmj6")
+region = Rect2(0, 352, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o3shx"]
+atlas = ExtResource("1_upmj6")
+region = Rect2(64, 352, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2qg4y"]
+atlas = ExtResource("1_upmj6")
+region = Rect2(192, 352, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rwgab"]
 atlas = ExtResource("1_upmj6")
@@ -127,6 +139,30 @@ animations = [{
 }],
 "loop": true,
 "name": &"potion_red",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tskqd")
+}],
+"loop": true,
+"name": &"shield_1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o3shx")
+}],
+"loop": true,
+"name": &"shield_2",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2qg4y")
+}],
+"loop": true,
+"name": &"shield_3",
 "speed": 5.0
 }, {
 "frames": [{

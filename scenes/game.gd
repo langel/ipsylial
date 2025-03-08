@@ -26,10 +26,18 @@ func _ready() -> void:
 	# Bind update_zoom event from Camera2D
 	$Camera2D.connect("update_zoom", Callable(self, "_on_update_zoom"))
 	GameState.connect("player_damaged", Callable(self, "_on_player_damaged"))
-	
+	GameState.connect("new_item", Callable(self, "_on_new_item"))
+
 	$Camera2D._on_player_moved(GameState.player_position)
 	
 	update_los()
+
+func _on_new_item(item: Item):
+	var item_instance = ITEM_SCENE.instantiate()
+	item_instance.position = item.grid_position * GameState.TILE_SIZE
+	set_item_animation(item_instance, item.type)  # Assign animation
+	entity_layer.add_child(item_instance)
+	item.scene = item_instance
 
 func _on_player_damaged(damage: int):
 	spawn_floating_text("-"+str(damage),Color.CRIMSON,player.position)
@@ -87,6 +95,10 @@ func get_item_at_position(position: Vector2) -> Item:
 			return item
 	return null
 
+func heal_player(heal_amount):
+	GameState.hp += heal_amount
+	GameState.hp = GameState.max_hp if GameState.hp > GameState.max_hp else GameState.hp
+
 func handle_item_trigger(item: Item):
 	"""Handles player interaction with an item."""
 
@@ -98,7 +110,7 @@ func handle_item_trigger(item: Item):
 	elif item.type == Item.ItemType.APPLE:
 		# Heal player and remove the item
 		var heal_amount = GameState.rng_next_int() % 6 + 3  # Random number between 3-8
-		GameState.hp += heal_amount
+		heal_player(heal_amount)
 
 		# Remove the apple from the game
 		remove_item_from_game(item)
@@ -119,6 +131,31 @@ func handle_item_trigger(item: Item):
 		# Remove sword from game
 		remove_item_from_game(item)
 		spawn_floating_text("+1 DMG", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
+	
+	elif item.type == Item.ItemType.SHIELD_1:
+		# Increase player damage
+		GameState.max_hp += 2
+		GameState.hp += 2
+
+		# Remove sword from game
+		remove_item_from_game(item)
+		spawn_floating_text("+2 MAX HP", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
+	elif item.type == Item.ItemType.SHIELD_2:
+		# Increase player damage
+		GameState.max_hp += 5
+		GameState.hp += 5
+
+		# Remove sword from game
+		remove_item_from_game(item)
+		spawn_floating_text("+5 MAX HP", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
+	elif item.type == Item.ItemType.SHIELD_3:
+		# Increase player damage
+		GameState.max_hp += 10
+		GameState.hp += 10
+
+		# Remove sword from game
+		remove_item_from_game(item)
+		spawn_floating_text("+10 MAX HP", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
 
 func spawn_floating_text(text: String, color: Color, position: Vector2):
 	"""Spawns floating text above the given position, animates it upwards, and fades it out."""
@@ -132,9 +169,6 @@ func spawn_floating_text(text: String, color: Color, position: Vector2):
 	# Convert world position to screen position if needed
 	label.position = position - Vector2(0, 16)  # Offset upwards
 	entity_layer.add_child(label)  # Add to entity layer
-
-	# Debug print
-	print("Floating text spawned at:", label.position, "Text:", text)
 
 	# Animate text movement and fade-out
 	var tween = create_tween()
@@ -224,8 +258,28 @@ func handle_baddy_item_interaction(baddy: Baddy, item: Item):
 
 			# Remove sword from the game
 			remove_item_from_game(item)
-		_:
-			print("Unhandled item for baddy:", item.type)
+		Item.ItemType.SHIELD_1:
+			# Baddy gets stronger!
+			baddy.hp += 2
+			spawn_floating_text("+2 HP", Color.GOLD, baddy.scene.position)
+
+			# Remove sword from the game
+			remove_item_from_game(item)
+		Item.ItemType.SHIELD_2:
+			# Baddy gets stronger!
+			baddy.hp += 4
+			spawn_floating_text("+4 HP", Color.GOLD, baddy.scene.position)
+
+			# Remove sword from the game
+			remove_item_from_game(item)
+		Item.ItemType.SHIELD_3:
+			# Baddy gets stronger!
+			baddy.hp += 7
+			spawn_floating_text("+7 HP", Color.GOLD, baddy.scene.position)
+
+			# Remove sword from the game
+			remove_item_from_game(item)
+
 
 
 
@@ -321,6 +375,9 @@ func update_los():
 		for baddy in GameState.baddies:
 			if baddy.scene != null:
 				baddy.scene.visible = true 
+		for item in GameState.items:
+			if item.scene != null:
+				item.scene.visible = true 
 		return
 
 	fog_layer.visible = true  # Ensure fog layer is visible
@@ -353,7 +410,16 @@ func update_los():
 			baddy.scene.visible = baddy.grid_position in visible_tiles
 		else:
 			# Cull baddies outside the camera view
-			baddy.scene.visible = false  
+			baddy.scene.visible = false
+	for item in GameState.items:
+		if item.scene == null:
+			continue
+		if camera_rect.has_point(item.scene.position):  
+			# Baddies should only be visible if they're inside LOS
+			item.scene.visible = item.grid_position in visible_tiles
+		else:
+			# Cull baddies outside the camera view
+			item.scene.visible = false
 
 
 

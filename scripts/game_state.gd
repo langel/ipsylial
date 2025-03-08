@@ -3,6 +3,7 @@ extends Node
 signal player_moved(new_position: Vector2i)
 signal turn_ended
 signal player_damaged(damage: int)
+signal new_item(item: Item)
 
 const DEFAULT_RNG_POS = 0x13371ee7
 const TILE_SIZE: int = 32
@@ -10,6 +11,7 @@ const TILE_SIZE: int = 32
 var disable_fog = false
 
 var hp = 15
+var max_hp = 15
 var player_position: Vector2 = Vector2(0, 0)
 var player_damage = 1
 var player_los = 12
@@ -76,41 +78,60 @@ func new_baddies():
 func new_items():
 	var items: Array[Item] = []
 	var num_items = 5+(map.width*map.height)/36
-	var item_distribution = {Item.ItemType.BRAZIER_OFF: 50, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5}
+	var item_distribution = {Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_1: 5, Item.ItemType.SHIELD_2: 3, Item.ItemType.SHIELD_3: 1}
 	var distribution_sum = 0
 	for item_type in item_distribution.keys():
 		distribution_sum += item_distribution[item_type]
 	for i in range(0,num_items):
 		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 		if player_can_move_here(pos):
-			var item = Item.new()
+			var item = roll_item(item_distribution)
 			item.grid_position=pos
-			
-			item.type = Item.ItemType.BRAZIER_OFF if rng_next_int()%4 < 3 else Item.ItemType.APPLE
-			var item_roll = GameState.rng_next_int()%distribution_sum
-			var roll_sum = 0
-			for item_type in item_distribution.keys():
-				roll_sum += item_distribution[item_type]
-				if item_roll < roll_sum:
-					item.type = item_type
-					break
-			match item.type:
-				Item.ItemType.BRAZIER_OFF:
-					pass
-				Item.ItemType.APPLE:
-					pass
-				Item.ItemType.POTION_BLUE:
-					pass
-				Item.ItemType.SWORD:
-					item.for_baddies = true
-					pass
 			items.append(item)
 	return items
+
+func roll_item(item_distribution):
+	var distribution_sum = 0
+	var item = Item.new()
+	for item_type in item_distribution.keys():
+		distribution_sum += item_distribution[item_type]
+	var item_roll = GameState.rng_next_int()%distribution_sum
+	var roll_sum = 0
+	for item_type in item_distribution.keys():
+		roll_sum += item_distribution[item_type]
+		if item_roll < roll_sum:
+			item.type = item_type
+			break
+	match item.type:
+		Item.ItemType.BRAZIER_OFF:
+			pass
+		Item.ItemType.APPLE:
+			pass
+		Item.ItemType.POTION_BLUE:
+			pass
+		Item.ItemType.SWORD:
+			item.for_baddies = true
+			pass
+		Item.ItemType.SHIELD_1:
+			item.for_baddies = true
+			pass
+		Item.ItemType.SHIELD_2:
+			item.for_baddies = true
+			pass
+	return item
 
 func _on_baddy_died(baddy: Baddy):
 	""" Removes a dead baddy from the baddies list. """
 	if baddy in baddies:
 		baddies.erase(baddy)
+	
+	#roll for a drop
+	if GameState.rng_next_int()%4 >= 0:
+		var item = Item.new()
+		item.grid_position = baddy.grid_position
+		item.type = Item.ItemType.APPLE if GameState.rng_next_int()%2 > 0 else Item.ItemType.POTION_BLUE if GameState.rng_next_int()%2 > 0 else Item.ItemType.SWORD
+		items.append(item)
+		emit_signal("new_item",item)
 
 
 func rng_next_int() -> int:
