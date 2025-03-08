@@ -149,7 +149,7 @@ func move_player(direction: Vector2):
 
 	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
 		return false
-	if map.tiles[new_pos.x][new_pos.y].type != Tile.TileType.FLOOR:
+	if not map.tiles[new_pos.x][new_pos.y].traversable:
 		return false
 	if !player_can_move_here(new_pos):
 		return false
@@ -232,7 +232,7 @@ func build_pathfinding_grid():
 			var tile_id = map.tiles[x][y].type
 
 			# Only add walkable tiles (FLOOR)
-			if tile_id == Tile.TileType.FLOOR:
+			if map.tiles[x][y].traversable:
 				var id = get_astar_id(tile_pos)
 				astar.add_point(id, tile_pos)
 
