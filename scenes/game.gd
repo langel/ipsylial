@@ -255,8 +255,6 @@ func run_ai_turn():
 	
 func handle_baddy_item_interaction(baddy: Baddy, item: Item):
 	"""Handles interactions between baddies and items flagged as 'for_baddies'."""
-	print("Baddy interacted with:", item.type)
-
 	match item.type:
 		Item.ItemType.SWORD:
 			# Baddy gets stronger!
@@ -270,21 +268,18 @@ func handle_baddy_item_interaction(baddy: Baddy, item: Item):
 			baddy.hp += 2
 			spawn_floating_text("+2 HP", Color.GOLD, baddy.scene.position)
 
-			# Remove sword from the game
 			remove_item_from_game(item)
 		Item.ItemType.SHIELD_2:
 			# Baddy gets stronger!
 			baddy.hp += 4
 			spawn_floating_text("+4 HP", Color.GOLD, baddy.scene.position)
 
-			# Remove sword from the game
 			remove_item_from_game(item)
 		Item.ItemType.SHIELD_3:
 			# Baddy gets stronger!
 			baddy.hp += 7
 			spawn_floating_text("+7 HP", Color.GOLD, baddy.scene.position)
 
-			# Remove sword from the game
 			remove_item_from_game(item)
 
 
