@@ -7,6 +7,7 @@ signal new_item(item: Item)
 
 const DEFAULT_RNG_POS = 0x13371ee7
 const TILE_SIZE: int = 32
+const tile_types = Tile.types
 
 var disable_fog = false
 
@@ -149,7 +150,7 @@ func move_player(direction: Vector2):
 
 	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
 		return false
-	if map.tiles[new_pos.x][new_pos.y].type != Tile.TileType.FLOOR:
+	if map.tiles[new_pos.x][new_pos.y].type != tile_types.floor:
 		return false
 	if !player_can_move_here(new_pos):
 		return false
@@ -232,7 +233,7 @@ func build_pathfinding_grid():
 			var tile_id = map.tiles[x][y].type
 
 			# Only add walkable tiles (FLOOR)
-			if tile_id == Tile.TileType.FLOOR:
+			if tile_id == tile_types.floor:
 				var id = get_astar_id(tile_pos)
 				astar.add_point(id, tile_pos)
 

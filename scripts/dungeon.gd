@@ -1,32 +1,12 @@
 class_name Dungeon
 extends Node
 
+var tile := Tile.types
+
 
 var levels = 9
 var width = 144
 var height = 96
-
-enum tile {
-	acid,
-	door,
-	floor,
-	forrest,
-	stair_down,
-	stair_up,
-	wall,
-	water,
-}
-
-var colors = [
-	Color.LIME_GREEN,
-	Color.HOT_PINK,
-	Color.BISQUE,
-	Color.DARK_GREEN,
-	Color.SADDLE_BROWN,
-	Color.SANDY_BROWN,
-	Color.BLACK,
-	Color.CORNFLOWER_BLUE,
-]
 
 
 const DEFAULT_RNG_POS = 0x13371ee7
@@ -65,7 +45,6 @@ func gen_terrain(data: Array):
 	var s = 0
 	var d
 	var r
-	
 	
 	# level 1 - outside - walls are trees and flowers
 	level_fill(data[0], tile.forrest)
@@ -274,7 +253,7 @@ func gen_terrain(data: Array):
 	level_carve_hallway(data[8], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
 	level_carve_hallway(data[8], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
 	
-func level_arc(data: Array, origin: Vector2, start: int, end: int, radius: int, width: int, tile_type: tile):
+func level_arc(data: Array, origin: Vector2, start: int, end: int, radius: int, width: int, tile_type: int):
 	var d = start if (start < end) else end
 	for i in width:
 		if (start > end):
@@ -284,7 +263,7 @@ func level_arc(data: Array, origin: Vector2, start: int, end: int, radius: int, 
 			for j in (end - start):
 				data_write(data, origin.x + sin(((start+j)/360.0)*TAU)*(radius+i), origin.y + cos(((start+j)/360.0)*TAU)*(radius+i), tile_type)
 		
-func level_arc_fine(data: Array, origin: Vector2, start: int, end: int, radius: int, width: int, tile_type: tile):
+func level_arc_fine(data: Array, origin: Vector2, start: int, end: int, radius: int, width: int, tile_type: int):
 	var d = start if (start < end) else end
 	for i in width:
 		if (start > end):
@@ -295,7 +274,7 @@ func level_arc_fine(data: Array, origin: Vector2, start: int, end: int, radius: 
 				data_write(data, origin.x + sin(((start+j)/1000.0)*TAU)*(radius+i), origin.y + cos(((start+j)/1000.0)*TAU)*(radius+i), tile_type)
 		
 	
-func level_fill(data: Array, type: tile):
+func level_fill(data: Array, type: int):
 	for x in width:
 		for y in height:
 			data[x][y] = type
@@ -305,7 +284,7 @@ func level_noise(data: Array, type: int, rect: Rect2, amount: int):
 	for i in amount:
 		data[rect.position.x+(rng_next_int()%int(rect.size.x))][rect.position.y+(rng_next_int()%int(rect.size.y))] = type
 		
-func level_fill_ovoid(data: Array, rect: Rect2, tile_type: tile):
+func level_fill_ovoid(data: Array, rect: Rect2, tile_type: int):
 	var mid = rect.size.x / 2
 	for y in rect.size.y:
 		var length = sin((y / rect.size.y)*PI)
@@ -329,7 +308,7 @@ func level_carve_elipse(data: Array, rect: Rect2):
 					data[x+rect.position.x+mid][y+rect.position.y] = tile.floor
 					data[(mid-x)+rect.position.x][y+rect.position.y] = tile.floor
 	
-func level_fill_rounded(data: Array, rect: Rect2, tile_type: tile):
+func level_fill_rounded(data: Array, rect: Rect2, tile_type: int):
 	var mid = rect.size.x / 2
 	for a in 180:
 		var length = ceil((sin((a/180.0)*PI) * 0.5 + 0.5) * mid)

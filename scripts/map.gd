@@ -1,6 +1,8 @@
 class_name Map
 extends Node
 
+const tile_types = Tile.types
+
 var height: int = 0
 var width: int = 0
 var tiles: Array = []
@@ -19,7 +21,7 @@ func build_map():
 		tiles.append([])
 	for i in range(0,height):
 		for j in range(0, width):
-			var type =  Tile.TileType.AIR if (GameState.rng_next_int()%12 == 0) else Tile.TileType.FLOOR
+			var type =  tile_types.wall if (GameState.rng_next_int()%12 == 0) else tile_types.floor
 			tiles[j].append(Tile.new(j,i,type))
 		
 

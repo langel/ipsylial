@@ -339,7 +339,7 @@ func fill_map_tiles():
 	for i in range(0, GameState.map.height):
 		for j in range(0, GameState.map.width):
 			var texture_coords = Vector2i(0,8)
-			if (GameState.map.tiles[j][i].type == Tile.TileType.FLOOR):
+			if (GameState.map.tiles[j][i].type == Tile.types.floor):
 				texture_coords = get_random_floor_tile()
 			ground_tile_map.set_cell(Vector2i(j, i), 1, texture_coords, 0)
 
@@ -515,4 +515,4 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 
 func is_tile_wall(pos: Vector2) -> bool:
 	""" Check if a given tile is a wall """
-	return GameState.map.tiles[pos.x][pos.y].type == Tile.TileType.WALL or GameState.map.tiles[pos.x][pos.y].type == Tile.TileType.AIR
+	return GameState.map.tiles[pos.x][pos.y].type == Tile.types.wall or GameState.map.tiles[pos.x][pos.y].type == Tile.types.water
