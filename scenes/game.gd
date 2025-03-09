@@ -90,15 +90,59 @@ func move_player(move_dir: Vector2):
 		if pos_tile.type == Tile.types.stair_down:
 			GameState.depth += 1
 			GameState.map.load_level_grid_tiles(GameState.depth, ground_tile_map)
+			GameState.update_depth()
+			clear_scene_entities()
+			spawn_new_baddies()
+			spawn_new_items()
 		if pos_tile.type == Tile.types.stair_up:
 			GameState.depth -= 1
 			GameState.map.load_level_grid_tiles(GameState.depth, ground_tile_map)
+			GameState.update_depth()
+			clear_scene_entities()
+			spawn_new_baddies()
+			spawn_new_items()
 	# Check if the player stepped on an item
 	var found_item = get_item_at_position(destination)
 	if found_item:
 		handle_item_trigger(found_item)
 
 	GameState.end_turn()
+	
+func spawn_new_items():
+	"""Clears and spawns items after switching levels."""
+	GameState.items.clear()  # Clear previous items list
+	GameState.items = GameState.new_items()  # Generate new items for this level
+
+	for item in GameState.items:
+		var item_instance = ITEM_SCENE.instantiate()
+		item_instance.position = item.grid_position * GameState.TILE_SIZE
+		set_item_animation(item_instance, item.type)  # Assign animation
+		entity_layer.add_child(item_instance)
+		item.scene = item_instance  # Track the scene instance for visibility updates
+
+func spawn_new_baddies():
+	"""Clears and spawns baddies after switching levels."""
+	GameState.baddies.clear()  # Clear the previous baddies list
+	GameState.baddies = GameState.new_baddies()  # Generate new baddies for this level
+
+	for baddy in GameState.baddies:
+		var baddy_instance = BADDY_SCENE.instantiate()
+		baddy_instance.update_baddy(baddy)
+		baddy_instance.position = baddy.grid_position * GameState.TILE_SIZE
+		entity_layer.add_child(baddy_instance)
+		baddy.scene = baddy_instance  # Track the scene instance for visibility updates
+
+
+
+
+func clear_scene_entities():
+	"""Removes all entities (except the player and floating labels) from the scene before refreshing."""
+	for child in entity_layer.get_children():
+		if child != player and not (child is Label):
+			child.queue_free()
+
+
+
 
 func get_item_at_position(position: Vector2) -> Item:
 	"""Returns the item at the given position, or null if none exists."""

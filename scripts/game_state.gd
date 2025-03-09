@@ -27,27 +27,32 @@ var seedval: int = 0x1ee71337
 var rng = load("res://scripts/rng.gd").new()
 
 var turn_active: bool = true
+var astar_maps: Array = []  # Array to store AStar2D for each depth
 
 func start_game() -> void:
-	"""Initializes the game and places the player on a traversable tile."""
+	"""Initializes the game and prepares pathfinding grids for all depths."""
 	depth = 0
 	hp = 15
 	player_damage = 1
 	map = Map.new()
 	map.set_depth(0)
-	build_pathfinding_grid()
+
+	astar_maps.clear()
+	for z in range(map.dungeon.size()):
+		astar_maps.append(build_pathfinding_grid(z))  # Build AStar for each level
+
 	baddies = new_baddies()
 	items = new_items()
 
 	# Find a valid player spawn position
 	player_position = get_random_traversable_position()
-	#player_position = Vector2(1,1)
 
-	# Connect death signals for all baddies	
+	# Connect death signals for all baddies
 	for baddy in baddies:
 		if not baddy.died.is_connected(_on_baddy_died):
 			baddy.died.connect(_on_baddy_died.bind(baddy))
-	
+
+
 
 func get_random_traversable_position() -> Vector2:
 	"""Finds a random traversable tile that has a valid path to a stair_down tile."""
@@ -85,22 +90,33 @@ func get_stair_down_positions() -> Array:
 	return stair_down_positions
 
 
-func new_baddies():
+func new_baddies() -> Array[Baddy]:
+	"""Generates baddies efficiently by precomputing valid spawn locations first."""
 	var baddies: Array[Baddy] = []
 	var baddy_factory = BaddyFactory.new()
-	var num_baddies = 105 + rng_next_int()%10
-	for i in range(0,num_baddies):
-		var baddy: Baddy = baddy_factory.new_baddy(baddy_factory.get_random_baddy_type())
-		baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+
+	# Gather all valid tiles once instead of random-checking multiple times
+	var valid_tiles = []
+	for x in range(map.width):
+		for y in range(map.height):
+			var pos = Vector2(x, y)
+			if is_tile_valid(pos) and map.tiles[x][y].traversable:
+				valid_tiles.append(pos)
+
+	if valid_tiles.is_empty():
+		print("Warning: No valid spawn locations for baddies!")
+		return baddies
+
+	# Spawn baddies in valid locations
+	var num_baddies = 10*depth + rng_next_int() % 10
+	for i in range(num_baddies):
+		var baddy_type = baddy_factory.get_random_baddy_type()
+		var baddy = baddy_factory.new_baddy(baddy_type)
+		baddy.grid_position = valid_tiles[rng_next_int() % valid_tiles.size()]
 		baddies.append(baddy)
-	for i in Baddy.BaddyType.values():
-		for j in range(0,25):
-			var baddy: Baddy = baddy_factory.new_baddy(i)
-			baddy.grid_position = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
-			baddies.append(baddy)
-		
-		
+
 	return baddies
+
 
 func new_items():
 	var items: Array[Item] = []
@@ -116,6 +132,19 @@ func new_items():
 			item.grid_position=pos
 			items.append(item)
 	return items
+func update_depth():
+	"""Changes level depth and switches to the appropriate pathfinding grid."""
+	astar = astar_maps[depth]  # Switch to the correct AStar2D instance
+	rebuild_level_state()  # Rebuild baddies and items for the new level
+
+func rebuild_level_state():
+	"""Rebuilds baddies and items when switching levels."""
+	baddies.clear()
+	items.clear()
+
+	baddies = new_baddies()
+	items = new_items()
+
 
 func roll_item(item_distribution):
 	var distribution_sum = 0
@@ -209,14 +238,16 @@ func is_tile_valid(pos: Vector2) -> bool:
 	return pos.x >= 0 and pos.y >= 0 and pos.x < GameState.map.width and pos.y < GameState.map.height
 
 func get_ai_path(start: Vector2, end: Vector2) -> Array:
+	"""Returns the A* path from start to end using the correct pathfinding grid."""
+	var astar = astar_maps[depth]  # Get AStar for current depth
 	var start_id = get_astar_id(start)
 	var end_id = get_astar_id(end)
 
 	if astar.has_point(start_id) and astar.has_point(end_id):
-		var path = astar.get_point_path(start_id, end_id)
-		return path
+		return astar.get_point_path(start_id, end_id)
 
 	return []
+
 
 # pathfinding
 func baddy_can_move_here(baddy_pos):
@@ -248,26 +279,17 @@ func player_can_move_here(baddy_pos):
 	return true
 
 
-func build_pathfinding_grid():
-	""" Builds the A* pathfinding grid and ensures all traversable tiles have a valid path to a `stair_down` tile. """
-	astar.clear()
+func build_pathfinding_grid(depth: int) -> AStar2D:
+	"""Builds and returns an AStar2D pathfinding grid for a specific level."""
+	var astar = AStar2D.new()
 
-	# Find all `stair_down` tiles
-	var stair_down_positions: Array[Vector2] = []
 	for x in range(map.width):
 		for y in range(map.height):
 			var tile_pos = Vector2i(x, y)
-			var tile = map.tiles[x][y]
-
-			if tile.type == Tile.types.stair_down:
-				stair_down_positions.append(tile_pos)
-
-			# Add walkable tiles to the pathfinding graph
-			if tile.traversable:
+			if map.tilemap[depth][x][y].traversable:
 				var id = get_astar_id(tile_pos)
 				astar.add_point(id, tile_pos)
 
-	# Connect neighboring tiles to form a graph
 	for x in range(map.width):
 		for y in range(map.height):
 			var tile_pos = Vector2i(x, y)
@@ -279,8 +301,8 @@ func build_pathfinding_grid():
 					if astar.has_point(neighbor_id):
 						astar.connect_points(id, neighbor_id)
 
-	# Ensure all traversable tiles can reach at least one `stair_down` tile
-	validate_traversable_tiles(stair_down_positions)
+	return astar
+
 
 func validate_traversable_tiles(stair_down_positions: Array[Vector2]):
 	""" Marks any traversable tile as non-traversable if it has no valid path to a `stair_down` tile. """
@@ -310,14 +332,16 @@ func validate_traversable_tiles(stair_down_positions: Array[Vector2]):
 
 func is_path_valid(start: Vector2, end: Vector2) -> bool:
 	"""Checks if there's a valid path from start to end using A* pathfinding."""
+	var astar = astar_maps[depth]  # Use the correct AStar instance for the current depth
 	var start_id = get_astar_id(start)
 	var end_id = get_astar_id(end)
 
 	if astar.has_point(start_id) and astar.has_point(end_id):
 		var path = astar.get_point_path(start_id, end_id)
-		return path.size() > 1  # Valid if there's more than just the start tile
+		return path.size() > 1
 
 	return false
+
 
 
 
