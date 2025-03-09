@@ -14,19 +14,26 @@ enum types {
 
 var x: int = 0
 var y: int = 0
+var obfuscate: float = 0.0
 var texture_coords: Vector2i
-var traversable: bool = true
+var traversable: bool = false
 var type: types = types.floor  # Default type
 
 func _init(x: int, y: int, type: types = types.floor):
 	self.x = x
 	self.y = y
 	self.type = type
-	if type != types.floor:
-		traversable = false
 	var coords = [0,6]
 	match type:
+		types.acid:
+			coords = [GameState.rng_next_int()%11, 27]
+			self.obfuscate = 0.5
+		types.door:
+			coords = [3,16]
+			self.traversable = true
+			# closed = [2,16]
 		types.floor:
+			self.traversable = true
 			var roll = GameState.rng_next_int() % 30
 			match roll:
 				9:
@@ -41,9 +48,21 @@ func _init(x: int, y: int, type: types = types.floor):
 					coords = [2,7]
 				4:
 					coords = [3,7]
+		types.forrest:
+			self.obfuscate = 0.2
+			coords = [1 + GameState.rng_next_int() % 2, 25]
+		types.stair_down:
+			self.traversable = true
+			coords = [7,16]
+		types.stair_up:
+			self.traversable = true
+			coords = [8,16]
 		types.wall:
+			self.obfuscate = 1.0
 			var roll = GameState.rng_next_int() % 6
 			coords = [0, roll]
+		types.water:
+			coords = [GameState.rng_next_int()%11, 26]
 	self.texture_coords = Vector2i(coords[0],coords[1])
 
 # Called when the node enters the scene tree for the first time.

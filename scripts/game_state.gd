@@ -18,6 +18,7 @@ var player_damage = 1
 var player_los = 12
 
 var map: Map
+var depth: int
 var baddies: Array[Baddy] = []
 var items: Array[Item] = []
 var astar: AStar2D = AStar2D.new()
@@ -29,9 +30,11 @@ var turn_active: bool = true
 
 func start_game() -> void:
 	"""Initializes the game and places the player on a traversable tile."""
+	depth = 0
 	hp = 15
 	player_damage = 1
-	map = new_map()
+	map = Map.new()
+	map.set_depth(0)
 	build_pathfinding_grid()
 	baddies = new_baddies()
 	items = new_items()
@@ -139,8 +142,6 @@ func rng_next_int() -> int:
 	pos += 1
 	return rng.rng(pos, seedval)
 
-func new_map() -> Map:
-	return Map.new(128, 256)
 
 func move_player(direction: Vector2):
 	if !turn_active:
@@ -150,7 +151,7 @@ func move_player(direction: Vector2):
 
 	if new_pos.x < 0 or new_pos.x >= map.width or new_pos.y < 0 or new_pos.y >= map.height:
 		return false
-	if map.tiles[new_pos.x][new_pos.y].type != tile_types.floor:
+	if !map.tiles[new_pos.x][new_pos.y].traversable:
 		return false
 	if !player_can_move_here(new_pos):
 		return false
@@ -226,9 +227,9 @@ func player_can_move_here(baddy_pos):
 
 func build_pathfinding_grid():
 	astar.clear()
-
 	for x in range(map.width):
 		for y in range(map.height):
+			#print("x: %s   y: %s" % [x, y])
 			var tile_pos = Vector2i(x, y)
 			var tile_id = map.tiles[x][y].type
 

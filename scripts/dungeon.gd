@@ -4,7 +4,7 @@ extends Node
 var tile := Tile.types
 
 
-var levels = 9
+var depth = 9
 var width = 144
 var height = 96
 
@@ -27,15 +27,15 @@ func data_write(data: Array, x: int, y: int, val: int):
 	
 func gen_empty_map() -> Array:
 	var data = []
-	for l in levels:
+	for z in depth:
 		data.append([])
 		for x in width:
-			data[l].append([])
+			data[z].append([])
 			for y in height:
-				data[l][x].append(tile.wall)
+				data[z][x].append(tile.wall)
 	return data
 	
-func gen_terrain(data: Array):
+func gen_terrain(data: Array) -> Array:
 	pos = int(Time.get_unix_time_from_system()*1000)
 	var rooms = []
 	var stair
@@ -253,6 +253,9 @@ func gen_terrain(data: Array):
 	level_carve_hallway(data[8], Vector2(32, 10), true, 3, 13, Vector2(5,3), Vector2(7,7))
 	level_carve_hallway(data[8], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
 	level_carve_hallway(data[8], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
+	# donezo
+	return data
+	
 	
 func level_arc(data: Array, origin: Vector2, start: int, end: int, radius: int, width: int, tile_type: int):
 	var d = start if (start < end) else end

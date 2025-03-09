@@ -12,9 +12,8 @@ const ITEM_SCENE = preload("res://scenes/item.tscn")
 
 func _ready() -> void:
 	GameState.start_game()
+	GameState.map.load_level_grid_tiles(0, ground_tile_map)
 	print("Clearing tilemap on load...")
-	ground_tile_map.clear()
-	GameState.map.load_level_grid_tiles(GameState.map.tiles, ground_tile_map)
 	_on_player_moved(GameState.player_position)
 	GameState.player_moved.connect(_on_player_moved)
 	GameState.turn_ended.connect(_on_turn_ended)
@@ -81,6 +80,14 @@ func move_player(move_dir: Vector2):
 			attack_baddy(destination)
 		else:
 			return
+	else:
+		var pos_tile = GameState.map.tiles[destination.x][destination.y]
+		if pos_tile.type == Tile.types.stair_down:
+			GameState.depth += 1
+			GameState.map.load_level_grid_tiles(GameState.depth, ground_tile_map)
+		if pos_tile.type == Tile.types.stair_up:
+			GameState.depth -= 1
+			GameState.map.load_level_grid_tiles(GameState.depth, ground_tile_map)
 	# Check if the player stepped on an item
 	var found_item = get_item_at_position(destination)
 	if found_item:
@@ -481,7 +488,7 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 		var tile_pos = Vector2(round(current_pos.x), round(current_pos.y))
 
 		# If we hit a wall, return True (path is blocked)
-		if is_tile_wall(tile_pos):
+		if is_tile_blocking(tile_pos):
 			return true
 
 	return false  # Path is clear
@@ -489,6 +496,6 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 
 
 
-func is_tile_wall(pos: Vector2) -> bool:
+func is_tile_blocking(pos: Vector2) -> bool:
 	""" Check if a given tile is a wall """
-	return GameState.map.tiles[pos.x][pos.y].type == Tile.types.wall or GameState.map.tiles[pos.x][pos.y].type == Tile.types.water
+	return !GameState.map.tiles[pos.x][pos.y].traversable
