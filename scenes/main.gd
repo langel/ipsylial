@@ -43,8 +43,9 @@ func _input(event):
 	if Input.is_action_just_pressed("move_down") or Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("move_up") or Input.is_action_just_pressed("move_right"):	
 		var start_label = $press_key
 		start_label.text = "generating dungeon . . ."
+		await get_tree().create_timer(0.1).timeout
 		$press_key.queue_redraw()
-		GameState.start_game()
+		await GameState.start_game()
 		get_tree().change_scene_to_file(MAP_SCENE_PATH)
 	
 
