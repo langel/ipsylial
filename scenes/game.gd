@@ -11,6 +11,11 @@ const ITEM_SCENE = preload("res://scenes/item.tscn")
 
 
 func _ready() -> void:
+	set_physics_process(false)
+	ground_tile_map.set_physics_process(false)
+	ground_tile_map.set_physics_process_internal(false)
+	entity_layer.set_physics_process(false)
+	fog_layer.set_physics_process(false)
 	GameState.start_game()
 	GameState.map.load_level_grid_tiles(0, ground_tile_map)
 	print("Clearing tilemap on load...")
@@ -483,13 +488,14 @@ func is_path_blocked(start: Vector2, end: Vector2) -> bool:
 		var tile_pos = Vector2(round(current_pos.x), round(current_pos.y))
 
 		# If we hit a wall, return True (path is blocked)
-		if is_tile_blocking(tile_pos):
+		if is_tile_blocking(tile_pos) and get_tile_obf(tile_pos) >= .5:
 			return true
 
 	return false  # Path is clear
 
 
-
+func get_tile_obf(pos: Vector2) -> float:
+	return GameState.map.tiles[pos.x][pos.y].obfuscate
 
 func is_tile_blocking(pos: Vector2) -> bool:
 	""" Check if a given tile is a wall """

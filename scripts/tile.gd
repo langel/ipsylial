@@ -62,6 +62,7 @@ func _init(x: int, y: int, type: types = types.floor):
 			var roll = GameState.rng_next_int() % 6
 			coords = [0, roll]
 		types.water:
+			self.obfuscate = 0
 			coords = [GameState.rng_next_int()%11, 26]
 	self.texture_coords = Vector2i(coords[0],coords[1])
 
