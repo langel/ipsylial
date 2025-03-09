@@ -36,6 +36,7 @@ func gen_empty_map() -> Array:
 	return data
 	
 func gen_terrain(data: Array):
+	pos = int(Time.get_unix_time_from_system()*1000)
 	var rooms = []
 	var stair
 	var stairs = []

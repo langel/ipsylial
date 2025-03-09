@@ -14,7 +14,7 @@ func _ready() -> void:
 	GameState.start_game()
 	print("Clearing tilemap on load...")
 	ground_tile_map.clear()
-	fill_map_tiles()
+	GameState.map.load_level_grid_tiles(GameState.map.tiles, ground_tile_map)
 	_on_player_moved(GameState.player_position)
 	GameState.player_moved.connect(_on_player_moved)
 	GameState.turn_ended.connect(_on_turn_ended)
@@ -318,30 +318,6 @@ func item_type_to_string(item_type: int) -> String:
 	"""Converts an ItemType enum to a lowercase string."""
 	return Item.ItemType.keys()[item_type].to_lower()
 
-func get_random_floor_tile():
-	var coords = [0,6]
-	var roll = GameState.rng_next_int() % 30
-	if roll == 9:
-		coords = [1,6]
-	elif roll == 8:
-		coords = [2,6]
-	elif roll == 7:
-		coords = [3,6]
-	elif roll == 6:
-		coords = [1,7]
-	elif roll == 5:
-		coords = [2,7]
-	elif roll == 4:
-		coords = [3,7]
-	return Vector2i(coords[0],coords[1])
-
-func fill_map_tiles():
-	for i in range(0, GameState.map.height):
-		for j in range(0, GameState.map.width):
-			var texture_coords = Vector2i(0,8)
-			if (GameState.map.tiles[j][i].type == Tile.types.floor):
-				texture_coords = get_random_floor_tile()
-			ground_tile_map.set_cell(Vector2i(j, i), 1, texture_coords, 0)
 
 # ----------------------------
 # LINE OF SIGHT (LOS) SYSTEM
