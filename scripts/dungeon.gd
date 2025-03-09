@@ -35,6 +35,7 @@ func gen_empty_map() -> Array:
 				data[z][x].append(tile.wall)
 	return data
 	
+	
 func gen_terrain(data: Array) -> Array:
 	pos = int(Time.get_unix_time_from_system()*1000)
 	var rooms = []
@@ -61,7 +62,7 @@ func gen_terrain(data: Array) -> Array:
 	# river
 	y = height/2
 	y += rngmod(160) - 80
-	x = width/2
+	x = width/2	
 	if (rngmod(2)):
 		level_arc_fine(data[0], Vector2(x+100, y), 500, 1000, 90, 25, tile.water)
 	else:
@@ -204,11 +205,19 @@ func gen_terrain(data: Array) -> Array:
 	stairs = []
 	stair = Vector2(stairs_old[0].x +2, stairs_old[0].y +2)
 	stairs.append(stair);
-	level_carve_hallway(data[2], Vector2(stair.x - 6, stair.y - 6), true, 12, 7, Vector2(3,3), Vector2(3,1))
-	level_carve_hallway(data[2], Vector2(stair.x - 6, stair.y - 6), false, 12, 7, Vector2(3,3), Vector2(1,3))
+	level_carve_hallway(data[2], Vector2(stair.x - 6, stair.y - 6), true, 13, 7, Vector2(3,3), Vector2(3,1))
+	level_carve_hallway(data[2], Vector2(stair.x - 6, stair.y - 6), false, 13, 7, Vector2(3,3), Vector2(1,3))
 	data_write(data[2], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
 	data_write(data[2], stair.x, stair.y, tile.stair_down)
-	
+	#2nd room
+	level_noise(data[2], tile.water, Rect2(stairs_old[1].x - 25, stairs_old[1].y - 25, 50, 50), 3000)
+	level_fill_ovoid(data[2], Rect2(stairs_old[1].x - 15, stairs_old[1].y - 15, 30, 30), tile.floor)
+	level_noise(data[2], tile.water, Rect2(stairs_old[1].x - 15, stairs_old[1].y - 15, 30, 30), 27)
+	stair = Vector2(stairs_old[1].x +2, stairs_old[1].y +2)
+	level_carve_path(data[3], stairs_old[1], stair)
+	data_write(data[2], stairs_old[1].x, stairs_old[1].y, tile.stair_up)
+	data_write(data[2], stair.x, stair.y, tile.stair_down)
+	stairs.append(stair);
 	
 	# level 4
 	#level_carve_rounded(data[3], Rect2(30,20,90,50))
@@ -220,26 +229,84 @@ func gen_terrain(data: Array) -> Array:
 	level_carve_hallway(data[3], Vector2(stair.x - 5, stair.y - 5), false, 14, 5, Vector2(3,3), Vector2(3,5))
 	data_write(data[3], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
 	data_write(data[3], stair.x, stair.y, tile.stair_down)
+	#2nd room
+	level_noise(data[3], tile.water, Rect2(stairs_old[1].x - 25, stairs_old[1].y - 25, 50, 50), 3000)
+	level_fill_ovoid(data[3], Rect2(stairs_old[1].x - 10, stairs_old[1].y - 10, 20, 20), tile.floor)
+	level_noise(data[3], tile.water, Rect2(stairs_old[1].x - 10, stairs_old[1].y - 10, 20, 20), 157)
+	stair = Vector2(stairs_old[1].x +2, stairs_old[1].y +2)
+	level_carve_path(data[3], stairs_old[1], stair)
+	data_write(data[3], stairs_old[1].x, stairs_old[1].y, tile.stair_up)
+	data_write(data[3], stair.x, stair.y, tile.stair_down)
+	stairs.append(stair);
 	
 	
 	# level 5
-	level_carve_path(data[4], Vector2(100,70), Vector2(20,20))
-	level_carve_path(data[4], Vector2(40,40), Vector2(120,10))
+	stairs_old = stairs
+	stairs = []
+	rooms = []
+	for i in 9:
+		if i == 0:
+			rooms.append(Rect2(stairs_old[0].x - 5, stairs_old[0].y - 5, 10, 10))
+		else:
+			if i == 5:
+				rooms.append(Rect2(stairs_old[1].x - 5, stairs_old[1].y - 5, 10, 10))
+			else:
+				rooms.append(Rect2(rngmod(width-30)+5, rngmod(height-25)+5, 5+rngmod(20), 5+rngmod(15)))
+	for room in rooms:
+		level_carve_elipse(data[4], room)
+	level_noise(data[4], tile.water, Rect2(0, 0, width, height), 1111)
+	for i in 9:
+		if i != 0:
+			level_carve_corridor(data[4], rooms[i-1].get_center(), rooms[i].get_center())
+	data_write(data[4], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
+	data_write(data[4], stairs_old[1].x, stairs_old[1].y, tile.stair_up)
+	stairs.append(Vector2(rooms[8].get_center().x, rooms[8].get_center().y))
+	data_write(data[4], stairs[0].x, stairs[0].y, tile.stair_down)
+		
+		
 	# level 6
-	level_carve_corridor(data[5], Vector2(100,70), Vector2(20,20))
-	level_carve_corridor(data[5], Vector2(100,10), Vector2(120,30))
-	level_carve_corridor(data[5], Vector2(125,40), Vector2(100,60))
-	level_carve_corridor(data[5], Vector2(90,50), Vector2(60,30))
-	level_carve_corridor(data[5], Vector2(65,35), Vector2(80,10))
-	level_carve_corridor(data[5], Vector2(10,50), Vector2(11,75))
-	level_carve_corridor(data[5], Vector2(20,50), Vector2(21,70))
-	level_carve_corridor(data[5], Vector2(30,70), Vector2(51,71))
-	level_carve_corridor(data[5], Vector2(30,80), Vector2(51,80))
+	stairs_old = stairs
+	stairs = []
+	rooms = []
+	for i in 12:
+		if i == 0:
+			rooms.append(Rect2(stairs_old[0].x - 5, stairs_old[0].y - 5, 10, 10))
+		else:
+				rooms.append(Rect2(rngmod(width-30)+5, rngmod(height-25)+5, 3+rngmod(7), 3+rngmod(5)))
+	for room in rooms:
+		level_carve_elipse(data[5], room)
+	level_noise(data[5], tile.acid, Rect2(0, 0, width, height), 1111)
+	level_noise(data[5], tile.water, Rect2(0, 0, width, height), 3111)
+	for i in 12:
+		if i != 0:
+			level_carve_corridor(data[5], rooms[i-1].get_center(), rooms[i].get_center())
+	data_write(data[5], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
+	stairs.append(Vector2(rooms[11].get_center().x, rooms[11].get_center().y))
+	data_write(data[5], stairs[0].x, stairs[0].y, tile.stair_down)
+	
+	
 	# level 7
+	stairs_old = stairs
+	stairs = []
 	level_carve_rounded(data[6], Rect2(5,5,width-10,height-10))
-	level_noise(data[6], tile.wall, Rect2(10, 10, 40, 40), 500)
-	level_noise(data[6], tile.wall, Rect2(0,0,width,height), 100)
+	level_noise(data[6], tile.acid, Rect2(0,0,width,height), 3333)
+	level_noise(data[6], tile.acid, Rect2(12,12,width-12,height-12), 3333)
+	level_noise(data[6], tile.water, Rect2(0,0,width,height), 1111)
+	for i in 24:
+		level_carve_path(data[6], Vector2(rngmod(width-24)+12,rngmod(height-24)+12), Vector2(rngmod(width-24)+12,rngmod(height-24)+12))
+	data_write(data[6], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
+	stairs.append(Vector2(width - stairs_old[0].x, height - stairs_old[0].y))
+	data_write(data[6], stairs[0].x, stairs[0].y, tile.stair_down)
+	level_carve_path(data[6], stairs_old[0], stairs[0])
+		
+	
 	# level 8
+	level_carve_hallway(data[8], Vector2(72, 10), true, 2, 9, Vector2(5,3), Vector2(2,3))
+	level_carve_hallway(data[8], Vector2(32, 10), true, 3, 13, Vector2(5,3), Vector2(7,7))
+	level_carve_hallway(data[8], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
+	level_carve_hallway(data[8], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
+	
+	# level 9
 	level_carve_rounded(data[7], Rect2(width/2-30,height/2-10,60,20))
 	level_carve_elipse(data[7], Rect2(10,10,20,20))
 	level_carve_elipse(data[7], Rect2(width-30,10,20,30))
@@ -248,11 +315,6 @@ func gen_terrain(data: Array) -> Array:
 	level_noise(data[7], tile.wall, Rect2(10, 10, width-20, height-20), 1000)
 	level_carve_corridor(data[7], Vector2(15,15), Vector2(width/2-20,height/2-5))
 	level_carve_path(data[7], Vector2(width/2,height/2), Vector2(width-20,height-20))
-	# level 9
-	level_carve_hallway(data[8], Vector2(72, 10), true, 2, 9, Vector2(5,3), Vector2(2,3))
-	level_carve_hallway(data[8], Vector2(32, 10), true, 3, 13, Vector2(5,3), Vector2(7,7))
-	level_carve_hallway(data[8], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
-	level_carve_hallway(data[8], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
 	# donezo
 	return data
 	
@@ -286,7 +348,7 @@ func level_fill(data: Array, type: int):
 	
 func level_noise(data: Array, type: int, rect: Rect2, amount: int):
 	for i in amount:
-		data[rect.position.x+(rng_next_int()%int(rect.size.x))][rect.position.y+(rng_next_int()%int(rect.size.y))] = type
+		data_write(data, rect.position.x+(rng_next_int()%int(rect.size.x)), rect.position.y+(rng_next_int()%int(rect.size.y)), type)
 		
 func level_fill_ovoid(data: Array, rect: Rect2, tile_type: int):
 	var mid = rect.size.x / 2
@@ -352,30 +414,20 @@ func level_carve_path(data: Array, start: Vector2, end: Vector2):
 			data_write(data, end.x, y + end.y, tile.floor)
 		
 func level_carve_corridor(data: Array, start: Vector2, end: Vector2):
-	var dx = abs(end.x - start.x)
-	var dy = -abs(end.y - start.y)
-	var sx = 1 if start.x < end.x else -1
-	var sy = 1 if start.y < end.y else -1
-	var x = start.x
-	var y = start.y
-	var err = dx - dy
-	while true:
+	var diff = end - start
+	var steps = max(abs(diff.x), abs(diff.y))
+	var step_x = diff.x / steps
+	var step_y = diff.y / steps
+	var current_pos = start
+	for i in range(1,steps):
+		current_pos += Vector2(step_x, step_y)
+		var x = round(current_pos.x)
+		var y = round(current_pos.y)
 		data_write(data, x, y, tile.floor)
 		data_write(data, x+1, y, tile.floor)
 		data_write(data, x-1, y, tile.floor)
 		data_write(data, x, y+1, tile.floor)
 		data_write(data, x, y-1, tile.floor)
-		var e2 = err * 2
-		if e2 > dy:
-			if x == end.x and y == end.y:
-				break
-			err += dy
-			x += sx
-		if e2 < dx:
-			if y == end.y:
-				break
-			err += dx
-			y += sy
 	return
 		
 func level_carve_hallway(data: Array, start: Vector2, vertical: bool, hall_width: int, room_count: int, room_min: Vector2, room_rng: Vector2):
