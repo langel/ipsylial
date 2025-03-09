@@ -50,16 +50,39 @@ func start_game() -> void:
 	
 
 func get_random_traversable_position() -> Vector2:
-	"""Finds a random traversable tile for the player to spawn."""
-	while true:
-		var x = rng_next_int() % map.width
-		var y = rng_next_int() % map.height
-		var pos = Vector2(x, y)
+	"""Finds a random traversable tile that has a valid path to a stair_down tile."""
+	var valid_positions = []
+	var stair_down_positions = get_stair_down_positions()
 
-		# Ensure the tile is walkable and doesn't contain a baddy
-		if is_tile_valid(pos) and map.tiles[x][y].traversable and not pos_has_baddy(pos):
-			return pos  # Found a valid position
-	return Vector2(0,0)
+	if stair_down_positions.is_empty():
+		print("No stair_down tiles found! Cannot determine valid spawn points.")
+		return Vector2(0, 0)  # Default to 0,0 if there's no valid position
+
+	# Collect all valid tiles that can reach at least one stair_down
+	for x in range(map.width):
+		for y in range(map.height):
+			var pos = Vector2(x, y)
+			if is_tile_valid(pos) and map.tiles[x][y].traversable and not pos_has_baddy(pos):
+				for stair_pos in stair_down_positions:
+					if is_path_valid(pos, stair_pos):
+						valid_positions.append(pos)
+						break  # Stop checking once we find one valid stair connection
+
+	# Pick a random position from the valid list
+	if valid_positions.size() > 0:
+		return valid_positions[rng_next_int() % valid_positions.size()]
+	else:
+		print("Warning: No valid spawn positions found.")
+		return Vector2(0, 0)  # Default fallback
+
+func get_stair_down_positions() -> Array:
+	"""Returns a list of all stair_down tile positions."""
+	var stair_down_positions = []
+	for x in range(map.width):
+		for y in range(map.height):
+			if map.tiles[x][y].type == Tile.types.stair_down:
+				stair_down_positions.append(Vector2(x, y))
+	return stair_down_positions
 
 
 func new_baddies():
@@ -226,15 +249,21 @@ func player_can_move_here(baddy_pos):
 
 
 func build_pathfinding_grid():
+	""" Builds the A* pathfinding grid and ensures all traversable tiles have a valid path to a `stair_down` tile. """
 	astar.clear()
+
+	# Find all `stair_down` tiles
+	var stair_down_positions: Array[Vector2] = []
 	for x in range(map.width):
 		for y in range(map.height):
-			#print("x: %s   y: %s" % [x, y])
 			var tile_pos = Vector2i(x, y)
-			var tile_id = map.tiles[x][y].type
+			var tile = map.tiles[x][y]
 
-			# Only add walkable tiles (FLOOR)
-			if map.tiles[x][y].traversable:
+			if tile.type == Tile.types.stair_down:
+				stair_down_positions.append(tile_pos)
+
+			# Add walkable tiles to the pathfinding graph
+			if tile.traversable:
 				var id = get_astar_id(tile_pos)
 				astar.add_point(id, tile_pos)
 
@@ -249,6 +278,48 @@ func build_pathfinding_grid():
 					var neighbor_id = get_astar_id(neighbor)
 					if astar.has_point(neighbor_id):
 						astar.connect_points(id, neighbor_id)
+
+	# Ensure all traversable tiles can reach at least one `stair_down` tile
+	validate_traversable_tiles(stair_down_positions)
+
+func validate_traversable_tiles(stair_down_positions: Array[Vector2]):
+	""" Marks any traversable tile as non-traversable if it has no valid path to a `stair_down` tile. """
+	if stair_down_positions.is_empty():
+		print("No stair_down tiles found! Skipping path validation.")
+		return
+
+	for x in range(map.width):
+		for y in range(map.height):
+			var tile_pos = Vector2(x, y)
+			var tile = map.tiles[x][y]
+
+			if not tile.traversable:
+				continue  # Skip already non-traversable tiles
+
+			# Check if there's a valid path to any `stair_down`
+			var reachable = false
+			for stair_pos in stair_down_positions:
+				if is_path_valid(tile_pos, stair_pos):
+					reachable = true
+					break
+
+			# If no valid path was found, mark tile as non-traversable
+			if not reachable:
+				tile.traversable = false
+				print("Marking tile as non-traversable:", tile_pos)
+
+func is_path_valid(start: Vector2, end: Vector2) -> bool:
+	"""Checks if there's a valid path from start to end using A* pathfinding."""
+	var start_id = get_astar_id(start)
+	var end_id = get_astar_id(end)
+
+	if astar.has_point(start_id) and astar.has_point(end_id):
+		var path = astar.get_point_path(start_id, end_id)
+		return path.size() > 1  # Valid if there's more than just the start tile
+
+	return false
+
+
 
 func get_astar_id(tile_pos: Vector2i) -> int:
 	return tile_pos.x * 1000 + tile_pos.y  # Unique ID for each tile

@@ -295,7 +295,7 @@ func drawScore():
 
 	game_status_scene.display_hp = GameState.hp
 	game_status_scene.display_turn = turn
-	game_status_scene.display_floor = 1
+	game_status_scene.display_floor = GameState.depth+1
 	game_status_scene.update_labels()
 
 func spawn_baddies():

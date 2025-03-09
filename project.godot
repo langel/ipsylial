@@ -89,6 +89,14 @@ space={
 ]
 }
 
+[physics]
+
+common/physics_ticks_per_second=1
+common/max_physics_steps_per_frame=1
+3d/default_gravity=0.0
+2d/solver/solver_iterations=1
+common/enable_object_picking=false
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
