@@ -24,10 +24,9 @@ GameState="*res://scripts/game_state.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
+window/size/viewport_width=930
+window/size/viewport_height=490
 window/stretch/mode="viewport"
-window/stretch/scale_mode="integer"
 
 [editor_plugins]
 
