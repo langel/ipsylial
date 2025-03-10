@@ -6,11 +6,13 @@ const TITLE_SCENE_PATH = "res://scenes/main.tscn"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var screen_size = get_viewport().size  # Get window size
-	var texture_size = image.texture.get_size() # Get original sprite size
 # Calculate scale factors
-	var scale_x = screen_size.x / texture_size.x
-	var scale_y = screen_size.y / texture_size.y
+	var texture_size = image.texture.get_size() 
+	var screen_w = ProjectSettings.get("display/window/size/viewport_width")
+	var screen_h = ProjectSettings.get("display/window/size/viewport_height")
+# Calculate scale factors
+	var scale_x = screen_w / texture_size.x
+	var scale_y = screen_h / texture_size.y
 	# Apply scale
 	image.scale = Vector2(scale_x, scale_y)
 	#image.centered = false
