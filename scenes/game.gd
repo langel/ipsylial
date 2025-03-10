@@ -366,8 +366,10 @@ func drawScore():
 	var game_status_scene = $CanvasLayer/GameStatus
 
 	game_status_scene.display_hp = GameState.hp
+	game_status_scene.display_hp_max = GameState.max_hp
+	game_status_scene.display_damage = GameState.player_damage
 	game_status_scene.display_turn = turn
-	game_status_scene.display_floor = GameState.depth+1
+	game_status_scene.display_depth = GameState.depth+1
 	game_status_scene.update_labels()
 
 func spawn_baddies():
