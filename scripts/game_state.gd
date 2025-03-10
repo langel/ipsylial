@@ -4,6 +4,7 @@ signal player_moved(new_position: Vector2i)
 signal turn_ended
 signal player_damaged(damage: int)
 signal new_item(item: Item)
+signal player_died()
 
 const DEFAULT_RNG_POS = 0x13371ee7
 const TILE_SIZE: int = 32
@@ -16,6 +17,7 @@ var max_hp = 15
 var player_position: Vector2 = Vector2(0, 0)
 var player_damage = 1
 var player_los = 12
+var alive = true
 
 var map: Map
 var depth: int
@@ -43,7 +45,7 @@ func start_game() -> void:
 
 	baddies = new_baddies()
 	items = new_items()
-
+	alive = true
 	# Find a valid player spawn position
 	player_position = get_random_traversable_position()
 
@@ -120,9 +122,20 @@ func new_baddies() -> Array[Baddy]:
 
 func new_items():
 	var items: Array[Item] = []
-	var num_items = 5+(map.width*map.height)/36
-	var item_distribution = {Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_1: 5, Item.ItemType.SHIELD_2: 3, Item.ItemType.SHIELD_3: 1}
+	var num_items = 5+(map.width*map.height)/50*(depth+1)
+	var item_distributions = []
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_1: 5})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_1: 5})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_1: 5})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_2: 5})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_2: 5, Item.ItemType.SHIELD_3: 3})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_2: 5, Item.ItemType.SHIELD_3: 3})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_2: 5, Item.ItemType.SHIELD_3: 3})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_3: 3})
+	item_distributions.append({Item.ItemType.BRAZIER_OFF: 10, Item.ItemType.APPLE: 10, Item.ItemType.POTION_BLUE: 5, Item.ItemType.SWORD:5, Item.ItemType.SHIELD_3: 5, Item.ItemType.KEY: 3})
+
 	var distribution_sum = 0
+	var item_distribution = item_distributions[depth]
 	for item_type in item_distribution.keys():
 		distribution_sum += item_distribution[item_type]
 	for i in range(0,num_items):
@@ -131,6 +144,14 @@ func new_items():
 			var item = roll_item(item_distribution)
 			item.grid_position=pos
 			items.append(item)
+	
+	if depth == 8:
+		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+		while not player_can_move_here(pos):
+			pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
+		var item = Item.new()
+		item.type = Item.ItemType.KEY
+		items.append(item)
 	return items
 func update_depth():
 	"""Changes level depth and switches to the appropriate pathfinding grid."""
@@ -231,6 +252,8 @@ func attack_player(baddy: Baddy):
 	pass
 
 func die():
+	#emit_signal("player_died")
+	#alive = false
 	pass
 
 func is_tile_valid(pos: Vector2) -> bool:

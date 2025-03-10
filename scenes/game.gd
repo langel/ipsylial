@@ -5,6 +5,8 @@ extends Node
 @onready var player = $EntityLayer/Player
 @onready var fog_layer = $Grid/FogOfWar  # Layer for fog effect
 
+const DEATH_SCENE_PATH = "res://death_screen.tscn"
+
 var turn = 0
 const BADDY_SCENE = preload("res://scenes/baddy.tscn")
 const ITEM_SCENE = preload("res://scenes/item.tscn")
@@ -31,7 +33,7 @@ func _ready() -> void:
 	$Camera2D.connect("update_zoom", Callable(self, "_on_update_zoom"))
 	GameState.connect("player_damaged", Callable(self, "_on_player_damaged"))
 	GameState.connect("new_item", Callable(self, "_on_new_item"))
-
+	GameState.connect("player_died", Callable(self, "_on_player_died"))
 	$Camera2D._on_player_moved(GameState.player_position)
 	
 	update_los()
@@ -45,6 +47,16 @@ func _on_new_item(item: Item):
 
 func _on_player_damaged(damage: int):
 	spawn_floating_text("-"+str(damage),Color.CRIMSON,player.position)
+
+func _on_player_died():
+	spawn_floating_text("YOU DIE",Color.CRIMSON,player.position)
+	await get_tree().create_timer(1.33).timeout
+	get_tree().change_scene_to_file(DEATH_SCENE_PATH)
+
+func you_win():
+	spawn_floating_text("YOU WIN",Color.GREEN,player.position)
+	await get_tree().create_timer(1.33).timeout
+	get_tree().change_scene_to_file(DEATH_SCENE_PATH)
 
 func _on_update_zoom():
 	"""Recalculate fog layer visibility when zoom level changes."""
@@ -67,8 +79,14 @@ func _input(event):
 	elif Input.is_action_just_pressed("escape"):
 		GameState.disable_fog = not GameState.disable_fog
 		update_los()
+	elif Input.is_action_just_pressed("debug"):
+		for x in range(GameState.map.width):
+			for y in range(GameState.map.height):
+				if GameState.map.tiles[x][y].type == Tile.types.stair_down:
+					GameState.player_position = Vector2(x,y)
+					_on_player_moved(GameState.player_position)
 
-	if move_dir != Vector2i.ZERO:
+	if move_dir != Vector2i.ZERO and GameState.alive:
 		move_player(move_dir)
 
 func _on_player_moved(new_position: Vector2i):
@@ -212,6 +230,12 @@ func handle_item_trigger(item: Item):
 		# Remove sword from game
 		remove_item_from_game(item)
 		spawn_floating_text("+10 MAX HP", Color(0, 0.5, 1), item.scene.position)  # Blue floating text
+	elif item.type == Item.ItemType.KEY:
+		GameState.alive = false
+		# Remove sword from game
+		remove_item_from_game(item)
+		spawn_floating_text("YOU WIN", Color.GREEN, item.scene.position)
+		you_win()
 
 func spawn_floating_text(text: String, color: Color, position: Vector2):
 	"""Spawns floating text above the given position, animates it upwards, and fades it out."""
@@ -250,6 +274,8 @@ func remove_item_from_game(item: Item):
 func attack_baddy(destination):
 	var found_baddy: Baddy = null
 	for baddy in GameState.baddies:
+		if not baddy.is_alive():
+			continue
 		if baddy.grid_position == destination:
 			found_baddy = baddy
 			break
