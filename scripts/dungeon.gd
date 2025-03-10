@@ -301,20 +301,35 @@ func gen_terrain(data: Array) -> Array:
 		
 	
 	# level 8
-	level_carve_hallway(data[8], Vector2(72, 10), true, 2, 9, Vector2(5,3), Vector2(2,3))
-	level_carve_hallway(data[8], Vector2(32, 10), true, 3, 13, Vector2(5,3), Vector2(7,7))
-	level_carve_hallway(data[8], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
-	level_carve_hallway(data[8], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
+	stairs_old = stairs
+	stairs = []
+	level_carve_hallway(data[7], Vector2(72, 10), true, 2, 9, Vector2(5,3), Vector2(2,3))
+	level_carve_hallway(data[7], Vector2(32, 10), true, 3, 13, Vector2(5,3), Vector2(7,7))
+	level_carve_hallway(data[7], Vector2(115, 7), true, 1, 27, Vector2(3,3), Vector2(17,5))
+	level_carve_hallway(data[7], Vector2(10, 70), false, 5, 17, Vector2(3,7), Vector2(5, 5))
+	level_carve_corridor(data[7], Vector2(stairs_old[0].x, stairs_old[0].y), Vector2(72,10))
+	data_write(data[7], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
+	level_carve_corridor(data[7], Vector2(72, 10), Vector2(32, 10))
+	level_carve_corridor(data[7], Vector2(72, 10), Vector2(115, 7))
+	level_carve_corridor(data[7], Vector2(72, 10), Vector2(10, 70))
+	# stair down
+	level_carve_corridor(data[7], Vector2(72, 10), Vector2(width/2, height/2))
+	stairs.append(Vector2(width/2, height/2))
+	data_write(data[7], stairs[0].x, stairs[0].y, tile.stair_down)
 	
 	# level 9
-	level_carve_rounded(data[7], Rect2(width/2-30,height/2-10,60,20))
-	level_carve_elipse(data[7], Rect2(10,10,20,20))
-	level_carve_elipse(data[7], Rect2(width-30,10,20,30))
-	level_carve_elipse(data[7], Rect2(10,60,20,20))
-	level_carve_elipse(data[7], Rect2(width-30,height-30,20,20))
-	level_noise(data[7], tile.wall, Rect2(10, 10, width-20, height-20), 1000)
-	level_carve_corridor(data[7], Vector2(15,15), Vector2(width/2-20,height/2-5))
-	level_carve_path(data[7], Vector2(width/2,height/2), Vector2(width-20,height-20))
+	stairs_old = stairs
+	level_carve_rounded(data[8], Rect2(width/2-30,height/2-10,60,20))
+	level_carve_elipse(data[8], Rect2(10,10,20,20))
+	level_carve_elipse(data[8], Rect2(width-30,10,20,30))
+	level_carve_elipse(data[8], Rect2(10,60,20,20))
+	level_carve_elipse(data[8], Rect2(width-30,height-30,20,20))
+	level_noise(data[8], tile.wall, Rect2(10, 10, width-20, height-20), 1000)
+	level_carve_corridor(data[8], Vector2(15,15), Vector2(width/2-20,height/2-5))
+	level_carve_corridor(data[8], Vector2(width-15,15), Vector2(width/2+20,height/2-5))
+	level_carve_path(data[8], Vector2(width/2,height/2), Vector2(width-20,height-20))
+	level_carve_path(data[8], Vector2(width/2,height/2), Vector2(20,height-20))
+	data_write(data[8], stairs_old[0].x, stairs_old[0].y, tile.stair_up)
 	# donezo
 	return data
 	

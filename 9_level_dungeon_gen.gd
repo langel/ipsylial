@@ -16,18 +16,20 @@ var colors = [
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	#DisplayServer.window_set_size(Vector2(1280,920))
 	dung = Dungeon.new()
 	data = dung.gen_empty_map()
 	dung.gen_terrain(data)
 	
 
 func _draw():
+	var s = 1 # scale
 	for l in range(data.size()):
-		var l_x = (l % 3) * dung.width * 2.7 + 110
-		var l_y = floor(l / 3) * dung.height * 2.4 + 30
+		var l_x = (l % 3) * dung.width * (s + 0.7) + 110
+		var l_y = floor(l / 3) * dung.height * (s + 0.4) + 30
 		for x in range(dung.width):
 			for y in range(dung.height):
-				draw_rect(Rect2(x*2+l_x,y*2+l_y,2,2), colors[data[l][x][y]])
+				draw_rect(Rect2(x*s+l_x,y*s+l_y,s,s), colors[data[l][x][y]])
 			
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
