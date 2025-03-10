@@ -290,8 +290,9 @@ func gen_terrain(data: Array) -> Array:
 	stairs = []
 	level_carve_rounded(data[6], Rect2(5,5,width-10,height-10))
 	level_noise(data[6], tile.acid, Rect2(0,0,width,height), 3333)
-	level_noise(data[6], tile.acid, Rect2(12,12,width-12,height-12), 3333)
-	level_noise(data[6], tile.water, Rect2(0,0,width,height), 1111)
+	level_noise(data[6], tile.acid, Rect2(12,12,width-24,height-24), 5555)
+	level_noise(data[6], tile.water, Rect2(0,0,width,height), 3333)
+	level_noise(data[6], tile.acid, Rect2(0,0,width,height), 5555)
 	for i in 24:
 		level_carve_path(data[6], Vector2(rngmod(width-24)+12,rngmod(height-24)+12), Vector2(rngmod(width-24)+12,rngmod(height-24)+12))
 	stairs.append(Vector2(width - stairs_old[0].x, height - stairs_old[0].y))

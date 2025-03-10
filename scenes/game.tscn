@@ -41,6 +41,7 @@ collision_enabled = false
 [node name="EntityLayer" type="Node2D" parent="."]
 
 [node name="Player" type="Sprite2D" parent="EntityLayer"]
+texture_filter = 1
 texture = SubResource("AtlasTexture_4fc2h")
 
 [node name="Camera2D" type="Camera2D" parent="."]

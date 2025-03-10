@@ -6,6 +6,7 @@ extends Node
 @onready var fog_layer = $Grid/FogOfWar  # Layer for fog effect
 
 const DEATH_SCENE_PATH = "res://death_screen.tscn"
+const WIN_SCENE_PATH = "res://win_screen.tscn"
 
 var turn = 0
 const BADDY_SCENE = preload("res://scenes/baddy.tscn")
@@ -56,7 +57,7 @@ func _on_player_died():
 func you_win():
 	spawn_floating_text("YOU WIN",Color.GREEN,player.position)
 	await get_tree().create_timer(1.33).timeout
-	get_tree().change_scene_to_file(DEATH_SCENE_PATH)
+	get_tree().change_scene_to_file(WIN_SCENE_PATH)
 
 func _on_update_zoom():
 	"""Recalculate fog layer visibility when zoom level changes."""

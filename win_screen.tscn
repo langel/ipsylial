@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://c380b3jqri536"]
+
+[ext_resource type="Script" path="res://win_screen.gd" id="1_ejcdq"]
+[ext_resource type="Texture2D" uid="uid://bdo1nv2l3nsqx" path="res://assets/textures/win-screen.png" id="2_eqgbn"]
+
+[node name="win_screen" type="Node2D"]
+script = ExtResource("1_ejcdq")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+texture_filter = 1
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_eqgbn")
