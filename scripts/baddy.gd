@@ -156,6 +156,8 @@ func find_nearest_reachable_item() -> Item:
 
 	for item in GameState.items:
 		if item.for_baddies:
+			if item.grid_position.distance_to(grid_position) < aggression_area:
+				continue
 			var path = GameState.get_ai_path(grid_position, item.grid_position)
 			if path.size() > 1 and path.size() < shortest_distance:
 				nearest_item = item
