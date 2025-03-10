@@ -315,7 +315,8 @@ func run_ai_turn():
 	for baddy in GameState.baddies:
 		if not baddy.is_alive():
 			continue
-
+		if baddy.grid_position.distance_to(GameState.player_position) > GameState.player_los + 1:
+			continue
 		# Move and update state
 		baddy.take_turn()
 		baddy.scene.position = (baddy.grid_position * GameState.TILE_SIZE)
