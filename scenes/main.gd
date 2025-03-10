@@ -14,15 +14,11 @@ func _ready() -> void:
 	
 	var screen_size = get_viewport().size  # Get window size
 	var texture_size = title_image.texture.get_size() # Get original sprite size
-	print(screen_size.x)
-	print(screen_size.y)
-	print(texture_size)
 # Calculate scale factors
 	var scale_x = screen_size.x / texture_size.x
 	var scale_y = screen_size.y / texture_size.y
 	# Apply scale
 	title_image.scale = Vector2(scale_x, scale_y)
-	print(title_image.scale)
 	title_image.centered = false
 	title_image.position = Vector2(0,0)
 	
