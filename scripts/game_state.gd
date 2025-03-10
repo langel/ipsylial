@@ -48,12 +48,92 @@ func start_game() -> void:
 	alive = true
 	# Find a valid player spawn position
 	player_position = get_random_traversable_position()
-
+	for z in range(map.dungeon.size() - 1):  # Ignore last level (no stairs down needed)
+		validate_stairs_down(z)
 	# Connect death signals for all baddies
 	for baddy in baddies:
 		if not baddy.died.is_connected(_on_baddy_died):
 			baddy.died.connect(_on_baddy_died.bind(baddy))
 
+func validate_stairs_down(depth: int) -> void:
+	"""Ensures that every map (except the last one) has a `stair_down` tile.
+	   - Depth 0: Ensures `stair_down` is reachable from `player_position`
+	   - Depth > 0: Ensures `stair_down` is reachable from `stair_up`
+	"""
+	var stair_down_positions = get_stair_down_positions_for_depth(depth)
+	if stair_down_positions.size() > 0:
+		return  # Stairs already exist, no need to modify.
+
+	print("No stair_down found in depth", depth, "- Adding one!")
+
+	# Find all traversable floor tiles
+	var valid_floor_tiles = []
+	for x in range(map.width):
+		for y in range(map.height):
+			var tile_pos = Vector2(x, y)
+			if is_tile_valid(tile_pos) and map.tiles[x][y].traversable:
+				valid_floor_tiles.append(tile_pos)
+
+	if valid_floor_tiles.is_empty():
+		print("Warning: No valid floor tiles found for stair placement at depth", depth)
+		return
+
+	# Determine the reference position for path validation
+	var reference_positions = []
+	if depth == 0:
+		reference_positions.append(player_position)  # First depth must connect to player spawn
+	else:
+		var stair_up_position = get_stair_up_position_for_depth(depth)
+		if stair_up_position != Vector2(-1, -1):  
+			reference_positions.append(stair_up_position)  # Other depths connect to `stair_up`
+
+	# Find a reachable floor tile
+	var selected_tile = null
+	for tile in valid_floor_tiles:
+		for ref_pos in reference_positions:
+			if is_path_valid_at_depth(ref_pos, tile, depth):
+				selected_tile = tile
+				break
+		if selected_tile:
+			break  # Stop once we find a valid tile
+
+	# If no reachable tile was found, just pick any floor tile (fallback)
+	if not selected_tile:
+		print("Warning: No path to a valid stair position. Assigning randomly.")
+		selected_tile = valid_floor_tiles[rng_next_int() % valid_floor_tiles.size()]
+
+	# Convert selected tile into a stair_down
+	map.tilemap[depth][int(selected_tile.x)][int(selected_tile.y)].type = Tile.types.stair_down
+
+
+func get_stair_down_positions_for_depth(depth: int) -> Array:
+	"""Returns a list of all stair_down tile positions for a specific depth."""
+	var stair_down_positions = []
+	for x in range(map.width):
+		for y in range(map.height):
+			if map.tilemap[depth][x][y].type == Tile.types.stair_down:
+				stair_down_positions.append(Vector2(x, y))
+	return stair_down_positions
+
+func get_stair_up_position_for_depth(depth: int) -> Vector2:
+	"""Finds the position of a `stair_up` tile in a given depth, or returns Vector2(-1, -1) if not found."""
+	for x in range(map.width):
+		for y in range(map.height):
+			if map.tilemap[depth][x][y].type == Tile.types.stair_up:
+				return Vector2(x, y)
+	return Vector2(-1, -1)  # No stair_up found
+
+func is_path_valid_at_depth(start: Vector2, end: Vector2, depth: int) -> bool:
+	"""Checks if there's a valid path from start to end at a given depth."""
+	var astar = astar_maps[depth]  # Use AStar for the specific depth
+	var start_id = get_astar_id(start)
+	var end_id = get_astar_id(end)
+
+	if astar.has_point(start_id) and astar.has_point(end_id):
+		var path = astar.get_point_path(start_id, end_id)
+		return path.size() > 1
+
+	return false
 
 
 func get_random_traversable_position() -> Vector2:
@@ -93,7 +173,15 @@ func get_stair_down_positions() -> Array:
 
 
 func new_baddies() -> Array[Baddy]:
-	"""Generates baddies efficiently by precomputing valid spawn locations first."""
+	"""Generates baddies efficiently by precomputing valid spawn locations first.
+	   - Depth 0-1: Farmers (weak)
+	   - Depth 2-3: Farmers, Rogues
+	   - Depth 4-5: Farmers, Rogues, Barbarians, Knights
+	   - Depth 6: Wizards appear
+	   - Depth 7: More aggressive scaling
+	   - Depth 8-9: Baddies gain more HP & damage.
+	"""
+
 	var baddies: Array[Baddy] = []
 	var baddy_factory = BaddyFactory.new()
 
@@ -109,16 +197,40 @@ func new_baddies() -> Array[Baddy]:
 		print("Warning: No valid spawn locations for baddies!")
 		return baddies
 
-	# Spawn baddies in valid locations
-	var num_baddies = 10*depth + rng_next_int() % 10
+	# Define spawn pool per depth
+	var spawn_pool = []
+	if depth <= 1:
+		spawn_pool = [Baddy.BaddyType.FARMER]
+	elif depth <= 3:
+		spawn_pool = [Baddy.BaddyType.FARMER, Baddy.BaddyType.ROGUE]
+	elif depth <= 5:
+		spawn_pool = [Baddy.BaddyType.FARMER, Baddy.BaddyType.ROGUE, Baddy.BaddyType.BARB, Baddy.BaddyType.KNIGHT]
+	elif depth == 6:
+		spawn_pool = [Baddy.BaddyType.FARMER, Baddy.BaddyType.ROGUE, Baddy.BaddyType.BARB, Baddy.BaddyType.KNIGHT, Baddy.BaddyType.MAGE]
+	elif depth == 7:
+		spawn_pool = [Baddy.BaddyType.ROGUE, Baddy.BaddyType.BARB, Baddy.BaddyType.KNIGHT, Baddy.BaddyType.MAGE]
+	elif depth >= 8:
+		spawn_pool = [Baddy.BaddyType.BARB, Baddy.BaddyType.KNIGHT, Baddy.BaddyType.MAGE]
+
+	# Determine number of baddies for depth scaling
+	var num_baddies = (12 + depth * 5) + (rng_next_int() % ((depth+1)*8))  # Increasing abundance per level
+
+	# Spawn baddies
 	for i in range(num_baddies):
-		var baddy_type = baddy_factory.get_random_baddy_type()
+		var baddy_type = spawn_pool[rng_next_int() % spawn_pool.size()]
 		var baddy = baddy_factory.new_baddy(baddy_type)
 		baddy.grid_position = valid_tiles[rng_next_int() % valid_tiles.size()]
+
+		# **Scaling Difficulty**
+		# - Increase HP slightly for each level
+		# - Increase Damage at Depth 8 and 9
+		baddy.hp += depth  # +1 HP per depth
+		if depth >= 8:
+			baddy.damage += (depth - 7)  # Damage boost on Depth 8 (+1) and Depth 9 (+2)
+
 		baddies.append(baddy)
 
 	return baddies
-
 
 func new_items():
 	var items: Array[Item] = []
@@ -252,8 +364,8 @@ func attack_player(baddy: Baddy):
 	pass
 
 func die():
-	#emit_signal("player_died")
-	#alive = false
+	emit_signal("player_died")
+	alive = false
 	pass
 
 func is_tile_valid(pos: Vector2) -> bool:
