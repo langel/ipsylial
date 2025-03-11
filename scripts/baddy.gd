@@ -65,6 +65,7 @@ func is_alive():
 
 func die():
 	emit_signal("died")
+	print("died signal")
 	pass
 
 func set_behavior(behavior):

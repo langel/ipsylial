@@ -50,10 +50,6 @@ func start_game() -> void:
 	player_position = get_random_traversable_position()
 	for z in range(map.dungeon.size() - 1):  # Ignore last level (no stairs down needed)
 		validate_stairs_down(z)
-	# Connect death signals for all baddies
-	for baddy in baddies:
-		if not baddy.died.is_connected(_on_baddy_died):
-			baddy.died.connect(_on_baddy_died.bind(baddy))
 
 func validate_stairs_down(depth: int) -> void:
 	"""Ensures that every map (except the last one) has a `stair_down` tile.
@@ -227,6 +223,11 @@ func new_baddies() -> Array[Baddy]:
 		baddy.hp += depth  # +1 HP per depth
 		if depth >= 8:
 			baddy.damage += (depth - 7)  # Damage boost on Depth 8 (+1) and Depth 9 (+2)
+			
+	# Connect death signals for all baddies
+	#for baddy in baddies:
+		if not baddy.died.is_connected(_on_baddy_died):
+			baddy.died.connect(_on_baddy_died.bind(baddy))
 
 		baddies.append(baddy)
 
@@ -251,11 +252,14 @@ func new_items():
 	for item_type in item_distribution.keys():
 		distribution_sum += item_distribution[item_type]
 	for i in range(0,num_items):
+		if distribution_sum > 101:
+			continue
 		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
 		if player_can_move_here(pos):
 			var item = roll_item(item_distribution)
 			item.grid_position=pos
 			items.append(item)
+			distribution_sum += 1
 	
 	if depth == 8:
 		var pos = Vector2(rng_next_int()%map.width,rng_next_int()%map.height)
@@ -265,6 +269,7 @@ func new_items():
 		item.type = Item.ItemType.KEY
 		items.append(item)
 	return items
+	
 func update_depth():
 	"""Changes level depth and switches to the appropriate pathfinding grid."""
 	astar = astar_maps[depth]  # Switch to the correct AStar2D instance
@@ -311,7 +316,9 @@ func roll_item(item_distribution):
 
 func _on_baddy_died(baddy: Baddy):
 	""" Removes a dead baddy from the baddies list. """
+	print("_on_baddy_died")
 	if baddy in baddies:
+		print("baddy died")
 		baddies.erase(baddy)
 	
 	#roll for a drop

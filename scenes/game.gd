@@ -459,6 +459,7 @@ func update_los():
 			fog_rect.visible = false  
 
 	# Hide or show baddies based on LOS and camera culling
+	print("baddies: " + str(GameState.baddies.size()) + "  items: " + str(GameState.items.size()))
 	for baddy in GameState.baddies:
 		if baddy.scene == null:
 			continue
