@@ -316,9 +316,7 @@ func roll_item(item_distribution):
 
 func _on_baddy_died(baddy: Baddy):
 	""" Removes a dead baddy from the baddies list. """
-	print("_on_baddy_died")
 	if baddy in baddies:
-		print("baddy died")
 		baddies.erase(baddy)
 	
 	#roll for a drop

@@ -24,7 +24,6 @@ func _ready() -> void:
 	title_image.scale = Vector2(scale_x, scale_y)
 	title_image.centered = false
 	title_image.position = Vector2(0,0)
-	print(title_image.scale)
 	
 	var start_label = $press_key
 	start_label.set_position(Vector2(95,300))
